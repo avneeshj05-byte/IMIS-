@@ -33,6 +33,7 @@ backend/test_*.py
 Thumbs.db
 desktop.ini
 *.log
+*.zip
 
 # IDEs & Editors
 .vscode/
