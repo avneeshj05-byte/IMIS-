@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMIS - Industrial Maintenance Intelligence System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #F3F4F2;
+      --bg-secondary: #FFFFFF;
+      --sidebar: #17251F;
+      --sidebar-hover: #22372E;
+      --sidebar-active: #2C483B;
+      --accent-primary: #315C49;
+      --accent-primary-hover: #264A3A;
+      --accent-secondary: #8DAA91;
+      --text-primary: #202A25;
+      --text-secondary: #737D76;
+      --text-muted: #9AA39D;
+      --warning: #D69A36;
+      --warning-bg: #FCF6EC;
+      --critical: #B84C42;
+      --critical-bg: #FBEFED;
+      --border: #DDE2DD;
+      --border-dark: #C6CCC6;
+      --success: #2E7D5A;
+      --success-bg: #EDF7F2;
+      --mono-font: 'IBM Plex Mono', monospace;
+      --sans-font: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans-font);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      font-size: 14px;
+    }
+
+    .mono { font-family: var(--mono-font); }
+
+    /* Fixed Vertical Sidebar */
+    #sidebar {
+      width: 260px;
+      background-color: var(--sidebar);
+      color: #E2E8E4;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      border-right: 1px solid #0E1713;
+      user-select: none;
+    }
+
+    .brand-section {
+      padding: 20px 18px;
+      border-bottom: 1px solid #23342C;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      background: var(--accent-primary);
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+    .brand-tagline {
+      font-size: 10.5px;
+      color: var(--accent-secondary);
+      margin-top: 5px;
+      line-height: 1.3;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 12px 8px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      margin-bottom: 3px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #B2BDB6;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover {
+      background-color: var(--sidebar-hover);
+      color: #FFFFFF;
+    }
+    .nav-item.active {
+      background-color: var(--sidebar-active);
+      color: #FFFFFF;
+      border-left: 3px solid var(--accent-secondary);
+      font-weight: 600;
+    }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--critical);
+      color: #fff;
+      font-size: 10px;
+      font-family: var(--mono-font);
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .sidebar-footer {
+      padding: 14px 18px;
+      border-top: 1px solid #23342C;
+      font-size: 11.5px;
+      background: #121E19;
+    }
+    .conn-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-secondary);
+      font-family: var(--mono-font);
+      font-size: 11px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #39D353;
+      box-shadow: 0 0 6px rgba(57, 211, 83, 0.6);
+    }
+    .profile-info {
+      margin-top: 8px;
+      color: #8C9990;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Main Container */
+    #main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg-primary);
+    }
+
+    /* Top Bar */
+    .top-header {
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .simulation-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #EBF3ED;
+      border: 1px solid var(--accent-secondary);
+      color: var(--accent-primary);
+      font-family: var(--mono-font);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 3px;
+    }
+    .sim-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .quick-btn {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-dark);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .quick-btn:hover {
+      background: #E8ECE8;
+      border-color: #AAB2AA;
+    }
+    .quick-btn.primary {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #FFFFFF;
+    }
+    .quick-btn.primary:hover {
+      background: var(--accent-primary-hover);
+    }
+
+    /* Content Area Scrollable */
+    .view-container {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* Cards & Layout */
+    .card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+    }
+    .kpi-value {
+      font-family: var(--mono-font);
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-top: 4px;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Tables */
+    .data-table-wrapper {
+      overflow-x: auto;
+      width: 100%;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    table.data-table th {
+      background-color: #F8F9F8;
+      border-bottom: 1px solid var(--border-dark);
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+    table.data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    table.data-table tr:hover {
+      background-color: #F9FAF9;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge.operational { background: var(--success-bg); color: var(--success); border: 1px solid #B8E2CD; }
+    .badge.maintenance { background: var(--warning-bg); color: var(--warning); border: 1px solid #F2DDB8; }
+    .badge.critical { background: var(--critical-bg); color: var(--critical); border: 1px solid #F5C6C1; }
+    .badge.standby { background: #F0F2F0; color: var(--text-secondary); border: 1px solid var(--border); }
+
+    /* Diagnostic RAG Output Formats */
+    .diag-box {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent-primary);
+      background: #FFFFFF;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      border-radius: 2px;
+    }
+    .diag-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .diag-text {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+    .diag-list {
+      margin-top: 8px;
+      margin-left: 18px;
+      line-height: 1.6;
+    }
+    .diag-list li {
+      margin-bottom: 6px;
+    }
+
+    .citation-card {
+      background: #F9FAF9;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      transition: border 0.15s;
+    }
+    .citation-card:hover {
+      border-color: var(--accent-secondary);
+    }
+    .citation-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .citation-title {
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--accent-primary);
+    }
+    .citation-score {
+      font-family: var(--mono-font);
+      font-size: 11px;
+      background: #E8ECE8;
+      padding: 2px 6px;
+      border-radius: 2px;
+      color: var(--text-secondary);
+    }
+    .citation-excerpt {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      font-style: italic;
+      border-left: 2px solid var(--border-dark);
+      padding-left: 8px;
+      margin-top: 4px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 19, 0.55);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-window {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 600px;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #F9FAF9;
+    }
+
+    /* Inputs */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border-dark);
+      border-radius: 3px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: #FFFFFF;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(49, 92, 73, 0.15);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    /* SVG Technical Graphs */
+    .chart-container {
+      width: 100%;
+      height: 220px;
+      position: relative;
+      margin-top: 10px;
+    }
+    svg.tech-chart {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* Utilities */
+    .flex-row { display: flex; align-items: center; gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .text-right { text-align: right; }
+    .clickable { cursor: pointer; }
+    .mt-4 { margin-top: 16px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED VERTICAL SIDEBAR -->
+  <aside id="sidebar">
+    <div class="brand-section">
+      <div class="brand-title">
+        <span>IMIS</span>
+        <span class="brand-badge">PRO v1.0</span>
+      </div>
+      <div class="brand-tagline">Industrial Maintenance Intelligence</div>
+    </div>
+
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="navigate('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>A. OVERVIEW</span>
+      </li>
+      <li class="nav-item" onclick="navigate('asset-monitoring')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>B. ASSET MONITORING</span>
+      </li>
+      <li class="nav-item" onclick="navigate('ai-diagnostics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span>C. AI DIAGNOSTICS</span>
+      </li>
+      <li class="nav-item" onclick="navigate('knowledge-base')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>D. KNOWLEDGE BASE</span>
+      </li>
+      <li class="nav-item" onclick="navigate('sensor-analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>E. SENSOR ANALYTICS</span>
+      </li>
+      <li class="nav-item" onclick="navigate('maintenance-history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>F. MAINTENANCE LOGS</span>
+      </li>
+      <li class="nav-item" onclick="navigate('alert-center')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>G. ALERT CENTER</span>
+        <span class="nav-badge" id="nav-alert-count">2</span>
+      </li>
+      <li class="nav-item" onclick="navigate('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>H. SETTINGS & HEALTH</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="conn-status">
+        <span class="status-dot"></span>
+        <span>PLC/MQTT TELEMETRY: LIVE</span>
+      </div>
+      <div class="profile-info">
+        <span>FACILITY BAY-04</span>
+        <span class="mono">OP-882</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEWPORT -->
+  <main id="main-content">
+    <!-- Top Bar -->
+    <header class="top-header">
+      <div class="header-left">
+        <h1 class="page-title" id="current-page-title">Industrial Overview</h1>
+        <div class="simulation-indicator">
+          <span class="sim-pulse"></span>
+          <span>SIMULATION MODE (PHYSICS DEGRADATION ACTIVE)</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="quick-btn" onclick="openSimulatorControlModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Inject Anomaly</span>
+        </button>
+        <button class="quick-btn primary" onclick="navigate('ai-diagnostics')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Diagnostic Query</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWS -->
+    <div class="view-container">
+
+      <!-- VIEW 1: OVERVIEW -->
+      <section id="view-overview">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Machines</span>
+            <span class="kpi-value" id="kpi-total-machines">5</span>
+            <span class="kpi-sub">Monitored Assets</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Operational</span>
+            <span class="kpi-value" style="color: var(--success);" id="kpi-operational">4</span>
+            <span class="kpi-sub">80% Fleet Online</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Under Maintenance</span>
+            <span class="kpi-value" style="color: var(--warning);" id="kpi-maintenance">1</span>
+            <span class="kpi-sub">M204 Conveyor</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Active Alerts</span>
+            <span class="kpi-value" style="color: var(--critical);" id="kpi-alerts">2</span>
+            <span class="kpi-sub">1 Critical, 1 Warning</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Fleet Health Index</span>
+            <span class="kpi-value mono" id="kpi-avg-health">88.6%</span>
+            <span class="kpi-sub">Calculated via ML</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              <span>Asset Operational Status Table</span>
+            </div>
+            <button class="quick-btn" onclick="fetchOverviewData()">Refresh</button>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table" id="machines-table">
+              <thead>
+                <tr>
+                  <th>Machine ID</th>
+                  <th>Machine Name</th>
+                  <th>Department</th>
+                  <th>Temperature</th>
+                  <th>Vibration</th>
+                  <th>Pressure</th>
+                  <th>Status</th>
+                  <th>Last Maintenance</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="machines-table-body">
+                <!-- Injected via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span>Recent Facility Maintenance Alerts</span>
+              </div>
+              <button class="quick-btn" onclick="navigate('alert-center')">View All</button>
+            </div>
+            <div id="overview-recent-alerts">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Live Telemetry Stream - M204 Thermal Profile</span>
+              </div>
+              <span class="mono" style="font-size: 11px; color: var(--text-secondary);" id="overview-chart-time">POLLING EVERY 2S</span>
+            </div>
+            <div class="chart-container" id="overview-chart-container">
+              <!-- Inline Technical SVG Chart -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: ASSET MONITORING -->
+      <section id="view-asset-monitoring" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Asset Filters & Search</div>
+            <div class="flex-row">
+              <input type="text" id="asset-search-input" class="form-input" placeholder="Search Machine ID or Name..." style="width: 250px;" oninput="filterAssets()">
+              <select id="asset-dept-select" class="form-select" style="width: 220px;" onchange="filterAssets()">
+                <option value="">All Departments</option>
+                <option value="Precision Machining Bay A">Precision Machining Bay A</option>
+                <option value="Forming & Stamping">Forming & Stamping</option>
+                <option value="Pneumatic Utilities">Pneumatic Utilities</option>
+                <option value="Assembly Line 2">Assembly Line 2</option>
+                <option value="Polymer Processing Bay B">Polymer Processing Bay B</option>
+              </select>
+            </div>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Machine ID</th>
+                  <th>Machine Name</th>
+                  <th>Type</th>
+                  <th>Department</th>
+                  <th>Health Score</th>
+                  <th>Operating Hours</th>
+                  <th>Status</th>
+                  <th>Inspect</th>
+                </tr>
+              </thead>
+              <tbody id="asset-monitoring-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Detail Drawer / Inspection Card -->
+        <div class="card hidden" id="machine-detail-panel">
+          <div class="card-header">
+            <div class="card-title" id="detail-panel-title">Asset Inspection: M204</div>
+            <button class="quick-btn primary" onclick="investigateMachineWithAI(currentDetailMachineId)">
+              <span>Investigate with AI RAG &rarr;</span>
+            </button>
+          </div>
+          <div class="grid-3" id="detail-specs-grid">
+            <!-- Injected specs -->
+          </div>
+          <div class="mt-4">
+            <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;">Real-Time Parameter Telemetry Snapshot</h4>
+            <div class="grid-3" id="detail-telemetry-cards"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: AI DIAGNOSTICS (CORE RAG MODULE) -->
+      <section id="view-ai-diagnostics" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              <span>Intelligent Technical Diagnostic Query</span>
+            </div>
+            <span class="mono" style="font-size: 11px; color: var(--text-secondary);">RAG-GROUNDED OEM KNOWLEDGE ENGINE</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Target Asset Context (Optional)</label>
+            <select id="diag-machine-select" class="form-select" style="max-width: 350px;">
+              <option value="">-- All Facility Assets --</option>
+              <option value="M201">M201 - CNC Milling Machine</option>
+              <option value="M202">M202 - Hydraulic Press</option>
+              <option value="M203">M203 - Industrial Compressor</option>
+              <option value="M204" selected>M204 - Conveyor Motor</option>
+              <option value="M205">M205 - Injection Moulding Machine</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Describe Failure Condition, Error Code, or Symptom</label>
+            <textarea id="diag-query-input" class="form-textarea" placeholder="e.g., Machine M204 is showing error E17. What should I check?">Machine M204 is showing error E17. What should I check?</textarea>
+          </div>
+
+          <div class="flex-row" style="margin-bottom: 14px;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Sample Diagnostic Scenarios:</span>
+            <button class="quick-btn" onclick="setQueryPrompt('Machine M204 is showing error E17. What should I check?', 'M204')">E17 Motor Thermal Overload (M204)</button>
+            <button class="quick-btn" onclick="setQueryPrompt('Machine M201 spindle vibration alarm E04 during high speed milling. What are the corrective actions?', 'M201')">E04 Spindle Imbalance (M201)</button>
+            <button class="quick-btn" onclick="setQueryPrompt('Hydraulic Press M202 showing error E88 with pressure dropping below 135 bar. What SOP should I follow?', 'M202')">E88 Pressure Loss (M202)</button>
+          </div>
+
+          <div class="flex-row">
+            <button class="quick-btn primary" id="btn-submit-diag" onclick="submitDiagnosticQuery()" style="padding: 9px 18px; font-size: 13px;">
+              <span>Execute Diagnostic Retrieval</span>
+            </button>
+            <div id="diag-loading" class="hidden flex-row">
+              <span class="sim-pulse"></span>
+              <span style="font-size: 12.5px; color: var(--text-secondary);">Searching FAISS vector database & synthesizing OEM troubleshooting SOPs...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DIAGNOSTIC RESULT PANEL -->
+        <div id="diag-result-container" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Diagnostic Resolution Report</div>
+              <div class="flex-row">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Retrieval Confidence:</span>
+                <span class="badge" id="diag-confidence-badge">HIGH</span>
+              </div>
+            </div>
+
+            <!-- DIAGNOSTIC SUMMARY -->
+            <div class="diag-box">
+              <div class="diag-heading">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Diagnostic Summary</span>
+              </div>
+              <p class="diag-text" id="diag-summary-text"></p>
+              <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;" id="diag-rationale-text"></div>
+            </div>
+
+            <!-- PROBABLE CAUSES -->
+            <div class="diag-box" style="border-left-color: var(--warning);">
+              <div class="diag-heading" style="color: var(--warning);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span>Probable Root Causes (Document-Corroborated)</span>
+              </div>
+              <ul class="diag-list" id="diag-causes-list"></ul>
+            </div>
+
+            <!-- RECOMMENDED INSPECTIONS -->
+            <div class="diag-box" style="border-left-color: var(--accent-secondary);">
+              <div class="diag-heading" style="color: var(--accent-primary);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                <span>Recommended Engineering Inspections</span>
+              </div>
+              <ul class="diag-list" id="diag-inspections-list"></ul>
+            </div>
+
+            <!-- STEP-BY-STEP TROUBLESHOOTING -->
+            <div class="diag-box" style="border-left-color: var(--success);">
+              <div class="diag-heading" style="color: var(--success);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span>Step-by-Step OEM Troubleshooting Procedure</span>
+              </div>
+              <ol class="diag-list" id="diag-steps-list"></ol>
+            </div>
+
+            <!-- SAFETY PRECAUTIONS -->
+            <div class="diag-box" style="border-left-color: var(--critical); background: var(--critical-bg);">
+              <div class="diag-heading" style="color: var(--critical);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Mandatory Industrial Safety Precautions</span>
+              </div>
+              <ul class="diag-list" id="diag-safety-list"></ul>
+            </div>
+
+            <!-- SOURCE TRANSPARENCY & CITATIONS -->
+            <div class="mt-4">
+              <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Source References & Verification Citations</span>
+              </h4>
+              <div id="diag-citations-list"></div>
+            </div>
+
+            <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+              <span class="mono" style="font-size: 11px; color: var(--text-secondary);" id="diag-metadata-footer">Generated via IMIS RAG Engine</span>
+              <button class="quick-btn" onclick="openLogMaintenanceModalFromDiag()">
+                <span>Record Maintenance Action &rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: DOCUMENT KNOWLEDGE BASE -->
+      <section id="view-knowledge-base" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Technical Document Upload & Vector Indexing</div>
+            <span class="mono" style="font-size: 11px; color: var(--text-secondary);">PyMuPDF Text Extractor & FAISS Index</span>
+          </div>
+          <div style="border: 2px dashed var(--border-dark); border-radius: 4px; padding: 28px; text-align: center; background: #FAFBFA;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" style="margin: 0 auto 10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Upload Technical Manuals, SOPs, or Error Code Documentation</p>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">Supports PDF, TXT, MD formats (Max file size: 25MB)</p>
+            <input type="file" id="doc-file-input" style="display: none;" onchange="handleFileUpload(event)">
+            <button class="quick-btn primary" onclick="document.getElementById('doc-file-input').click()" style="margin: 0 auto;">Select PDF Manual</button>
+            <div id="doc-upload-status" class="mt-4 mono" style="font-size: 12px;"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Indexed Technical Documentation Library</div>
+            <button class="quick-btn" onclick="fetchDocuments()">Refresh Library</button>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Document Name</th>
+                  <th>Type</th>
+                  <th>Pages</th>
+                  <th>Vector Chunks</th>
+                  <th>File Size</th>
+                  <th>Status</th>
+                  <th>Indexed Timestamp</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="documents-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: SENSOR ANALYTICS -->
+      <section id="view-sensor-analytics" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Real-Time Sensor Telemetry & Anomaly Analysis</div>
+            <div class="flex-row">
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Select Machine:</span>
+              <select id="sensor-machine-select" class="form-select" style="width: 240px;" onchange="updateSensorAnalyticsView()">
+                <option value="M201">M201 - CNC Milling Machine</option>
+                <option value="M202">M202 - Hydraulic Press</option>
+                <option value="M203">M203 - Industrial Compressor</option>
+                <option value="M204" selected>M204 - Conveyor Motor</option>
+                <option value="M205">M205 - Injection Moulding Machine</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Instantaneous Gauges -->
+          <div class="grid-3" id="sensor-gauges-grid"></div>
+        </div>
+
+        <!-- Historical Technical Telemetry Graphs -->
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Temperature Trendline (°C)</div>
+              <span class="mono" style="font-size: 11px; color: var(--critical);">MAX LIMIT: <span id="graph-temp-limit">80.0°C</span></span>
+            </div>
+            <div class="chart-container" id="chart-temp-container"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Vibration Velocity Trend (mm/s RMS)</div>
+              <span class="mono" style="font-size: 11px; color: var(--warning);">ISO LIMIT: <span id="graph-vib-limit">4.2 mm/s</span></span>
+            </div>
+            <div class="chart-container" id="chart-vib-container"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Operating Pressure Trend (bar)</div>
+              <span class="mono" style="font-size: 11px; color: var(--text-secondary);">RANGE: <span id="graph-press-range">2.0 - 4.5 bar</span></span>
+            </div>
+            <div class="chart-container" id="chart-press-container"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Motor Load Current (Amperes)</div>
+              <span class="mono" style="font-size: 11px; color: var(--text-secondary);">THREE-PHASE LOAD</span>
+            </div>
+            <div class="chart-container" id="chart-curr-container"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: MAINTENANCE HISTORY -->
+      <section id="view-maintenance-history" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Maintenance Records & Equipment Interventions</div>
+            <button class="quick-btn primary" onclick="openLogMaintenanceModal()">
+              <span>+ Log Maintenance Record</span>
+            </button>
+          </div>
+
+          <div class="flex-row" style="margin-bottom: 14px;">
+            <input type="text" id="maint-search-input" class="form-input" placeholder="Search by Error Code (e.g., E17, E04) or Issue..." style="max-width: 320px;" oninput="filterMaintenanceLogs()">
+            <select id="maint-machine-filter" class="form-select" style="max-width: 220px;" onchange="filterMaintenanceLogs()">
+              <option value="">All Machines</option>
+              <option value="M201">M201 (CNC Milling)</option>
+              <option value="M202">M202 (Hydraulic Press)</option>
+              <option value="M203">M203 (Compressor)</option>
+              <option value="M204">M204 (Conveyor Motor)</option>
+              <option value="M205">M205 (Injection Moulding)</option>
+            </select>
+          </div>
+
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Machine ID</th>
+                  <th>Error Code</th>
+                  <th>Reported Failure Issue</th>
+                  <th>Root Cause</th>
+                  <th>Corrective Action</th>
+                  <th>Downtime</th>
+                  <th>Technician</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="maintenance-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 7: ALERT CENTER -->
+      <section id="view-alert-center" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Centralized Industrial Alert Queue</div>
+            <div class="flex-row">
+              <select id="alert-status-filter" class="form-select" style="width: 170px;" onchange="fetchAlerts()">
+                <option value="">All Statuses</option>
+                <option value="NEW" selected>NEW Only</option>
+                <option value="ACKNOWLEDGED">Acknowledged</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+              <select id="alert-sev-filter" class="form-select" style="width: 170px;" onchange="fetchAlerts()">
+                <option value="">All Severities</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="WARNING">Warning</option>
+                <option value="INFO">Info</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Alert Code</th>
+                  <th>Severity</th>
+                  <th>Machine ID</th>
+                  <th>Category</th>
+                  <th>Condition Description</th>
+                  <th>Timestamp</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="alerts-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 8: SETTINGS & HEALTH -->
+      <section id="view-settings" class="hidden">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">LLM Inference Provider Configuration</div>
+              <span class="badge operational" id="settings-provider-badge">ACTIVE</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Active Diagnostic Model Provider</label>
+              <select id="settings-provider-select" class="form-select">
+                <option value="LOCAL_GROUNDED">Local OEM Rule Synthesizer (Zero Latency, High Determinism)</option>
+                <option value="GEMINI" selected>Google Gemini API (gemini-1.5-flash)</option>
+                <option value="OPENAI">OpenAI API (gpt-3.5-turbo / gpt-4)</option>
+                <option value="HUGGINGFACE">Hugging Face Serverless Inference</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key (Environment-secured, never logged)</label>
+              <input type="password" id="settings-api-key" class="form-input" placeholder="Enter API Key to enable cloud inference...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target Model Identifier</label>
+              <input type="text" id="settings-model-name" class="form-input" value="gemini-1.5-flash">
+            </div>
+            <button class="quick-btn primary" onclick="saveSettings()">Save & Update Provider</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">FAISS Vector Database & System Diagnostics</div>
+            </div>
+            <div class="diag-box" style="margin-bottom: 12px;">
+              <p><strong>Vector Search Engine:</strong> <span class="mono" id="diag-stat-engine">NumPy Flat Cosine Vector Store</span></p>
+              <p style="margin-top: 6px;"><strong>Vector Coordinate Dimension:</strong> <span class="mono" id="diag-stat-dim">384</span></p>
+              <p style="margin-top: 6px;"><strong>Total Indexed Knowledge Chunks:</strong> <span class="mono" id="diag-stat-chunks">12</span></p>
+              <p style="margin-top: 6px;"><strong>Database Storage:</strong> <span class="mono">SQLite 3 (WAL mode enabled, Postgres-ready)</span></p>
+              <p style="margin-top: 6px;"><strong>ML Model:</strong> <span class="mono">Scikit-Learn IsolationForest (100 estimators, 5% contamination)</span></p>
+            </div>
+            <button class="quick-btn" onclick="testBackendHealth()">Run Full System Health Check</button>
+            <div id="health-test-result" class="mt-4 mono" style="font-size: 11.5px;"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL 1: SIMULATOR ANOMALY INJECTOR -->
+  <div id="modal-simulator" class="modal-overlay hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 style="font-size: 15px; font-weight: 700;">IoT Sensor Simulator - Anomaly Injector</h3>
+        <button class="quick-btn" onclick="closeModal('modal-simulator')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+          Inject simulated physical degradation signatures into equipment telemetry to evaluate Isolation Forest ML detection and automated RAG diagnostics in real time.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Target Machine</label>
+          <select id="sim-inject-machine" class="form-select">
+            <option value="M204">M204 - Conveyor Motor (Assembly Line 2)</option>
+            <option value="M201">M201 - CNC Milling Machine (Bay A)</option>
+            <option value="M202">M202 - Hydraulic Press (Forming)</option>
+            <option value="M203">M203 - Industrial Compressor</option>
+            <option value="M205">M205 - Injection Moulding Machine</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anomaly Fault Pattern</label>
+          <select id="sim-inject-type" class="form-select">
+            <option value="THERMAL_OVERHEAT">Thermal Overheat (Simulates bearing galling or cooling failure)</option>
+            <option value="BEARING_VIBRATION">Bearing Vibration Harmonic Spike (ISO limit breach)</option>
+            <option value="PRESSURE_DROP">System Hydraulic/Pneumatic Pressure Drop (Seal failure)</option>
+            <option value="CURRENT_SPIKE">Phase Current Overload / Mechanical Binding</option>
+            <option value="RESET">Reset to Baseline Nominal Operation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Severity Multiplier</label>
+          <input type="number" id="sim-inject-sev" class="form-input" value="1.4" step="0.1" min="1.0" max="2.5">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="quick-btn" onclick="closeModal('modal-simulator')">Cancel</button>
+        <button class="quick-btn primary" onclick="submitInjectAnomaly()">Trigger Anomaly Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: LOG MAINTENANCE RECORD -->
+  <div id="modal-log-maint" class="modal-overlay hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 style="font-size: 15px; font-weight: 700;">Record Maintenance Activity</h3>
+        <button class="quick-btn" onclick="closeModal('modal-log-maint')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Target Machine ID</label>
+          <select id="log-maint-machine" class="form-select">
+            <option value="M204">M204 - Conveyor Motor</option>
+            <option value="M201">M201 - CNC Milling Machine</option>
+            <option value="M202">M202 - Hydraulic Press</option>
+            <option value="M203">M203 - Industrial Compressor</option>
+            <option value="M205">M205 - Injection Moulding Machine</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Error Code</label>
+          <input type="text" id="log-maint-error" class="form-input" placeholder="e.g., E17, E04, E88, N/A" value="E17">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reported Issue</label>
+          <input type="text" id="log-maint-issue" class="form-input" placeholder="Brief summary of reported anomaly" value="Conveyor drive bearing overheating and high vibration">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Verified Root Cause</label>
+          <input type="text" id="log-maint-cause" class="form-input" placeholder="Identified root cause" value="Galling on outer bearing race due to grease degradation">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Corrective Action Taken</label>
+          <textarea id="log-maint-action" class="form-textarea" placeholder="Detailed SOP corrective measures">Flushed housing, replaced 6308-2RS bearing, re-lubricated with Mobil Polyrex EM, aligned laser coupling.</textarea>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Downtime (Hours)</label>
+            <input type="number" id="log-maint-downtime" class="form-input" value="1.5" step="0.5">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Resolution Status</label>
+            <select id="log-maint-status" class="form-select">
+              <option value="RESOLVED" selected>RESOLVED</option>
+              <option value="IN_PROGRESS">IN_PROGRESS</option>
+              <option value="SCHEDULED">SCHEDULED</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="quick-btn" onclick="closeModal('modal-log-maint')">Cancel</button>
+        <button class="quick-btn primary" onclick="submitLogMaintenance()">Save Maintenance Record</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "/api/v1";
+    let currentDetailMachineId = "M204";
+    let cachedMachines = [];
+    let cachedAlerts = [];
+    let cachedMaintenance = [];
+    let pollingTimer = null;
+
+    // View Navigation
+    function navigate(viewName) {
+      document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+      document.querySelectorAll("section[id^='view-']").forEach(sec => sec.classList.add("hidden"));
+
+      const targetSec = document.getElementById("view-" + viewName);
+      if (targetSec) targetSec.classList.remove("hidden");
+
+      // Update Nav item active
+      const items = document.querySelectorAll(".nav-item");
+      const mapping = {
+        'overview': 0, 'asset-monitoring': 1, 'ai-diagnostics': 2, 'knowledge-base': 3,
+        'sensor-analytics': 4, 'maintenance-history': 5, 'alert-center': 6, 'settings': 7
+      };
+      if (mapping[viewName] !== undefined && items[mapping[viewName]]) {
+        items[mapping[viewName]].classList.add("active");
+      }
+
+      // Title Update
+      const titles = {
+        'overview': 'Industrial Overview',
+        'asset-monitoring': 'Asset Monitoring & Specifications',
+        'ai-diagnostics': 'AI Diagnostics & RAG Knowledge Retrieval',
+        'knowledge-base': 'Document Knowledge Base & Chunks',
+        'sensor-analytics': 'IoT Sensor Telemetry Analytics',
+        'maintenance-history': 'Equipment Maintenance History Logs',
+        'alert-center': 'Centralized Alert Center',
+        'settings': 'System Settings & Operational Health'
+      };
+      document.getElementById("current-page-title").innerText = titles[viewName] || 'IMIS Operations';
+
+      // Refresh data for target view
+      if (viewName === 'overview') fetchOverviewData();
+      else if (viewName === 'asset-monitoring') fetchAssetMonitoringData();
+      else if (viewName === 'knowledge-base') fetchDocuments();
+      else if (viewName === 'sensor-analytics') updateSensorAnalyticsView();
+      else if (viewName === 'maintenance-history') fetchMaintenanceLogs();
+      else if (viewName === 'alert-center') fetchAlerts();
+      else if (viewName === 'settings') fetchSettings();
+    }
+
+    // Modal Helpers
+    function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+    function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+    function openSimulatorControlModal() { openModal("modal-simulator"); }
+    function openLogMaintenanceModal() { openModal("modal-log-maint"); }
+
+    // Fetch Overview Data
+    async function fetchOverviewData() {
+      try {
+        const [sumRes, machRes, alertsRes] = await Promise.all([
+          fetch(`${API_BASE}/machines/summary`).then(r => r.json()),
+          fetch(`${API_BASE}/machines`).then(r => r.json()),
+          fetch(`${API_BASE}/alerts?status=NEW`).then(r => r.json())
+        ]);
+
+        document.getElementById("kpi-total-machines").innerText = sumRes.total_machines;
+        document.getElementById("kpi-operational").innerText = sumRes.operational_machines;
+        document.getElementById("kpi-maintenance").innerText = sumRes.maintenance_machines;
+        document.getElementById("kpi-alerts").innerText = sumRes.active_alerts;
+        document.getElementById("kpi-avg-health").innerText = sumRes.avg_fleet_health + "%";
+        document.getElementById("nav-alert-count").innerText = sumRes.active_alerts;
+
+        cachedMachines = machRes;
+        renderMachinesTable(machRes);
+        renderRecentAlerts(alertsRes);
+        renderOverviewSparkline();
+      } catch (e) {
+        console.error("Failed to load overview data:", e);
+      }
+    }
+
+    function renderMachinesTable(machines) {
+      const tbody = document.getElementById("machines-table-body");
+      tbody.innerHTML = "";
+      machines.forEach(m => {
+        const statusClass = m.status.toLowerCase();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong class="mono" style="color: var(--accent-primary);">${m.id}</strong></td>
+          <td><strong>${m.name}</strong><br><span style="font-size: 11px; color: var(--text-secondary);">${m.machine_type}</span></td>
+          <td>${m.department}</td>
+          <td class="mono">${m.current_temp ? m.current_temp.toFixed(1) + ' °C' : '--'}</td>
+          <td class="mono">${m.current_vib ? m.current_vib.toFixed(2) + ' mm/s' : '--'}</td>
+          <td class="mono">${m.current_press ? m.current_press.toFixed(1) + ' bar' : '--'}</td>
+          <td><span class="badge ${statusClass}">${m.status}</span></td>
+          <td class="mono" style="font-size: 11.5px;">${m.last_maintenance}</td>
+          <td>
+            <button class="quick-btn" onclick="inspectMachine('${m.id}')" style="padding: 4px 8px;">Inspect</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRecentAlerts(alerts) {
+      const container = document.getElementById("overview-recent-alerts");
+      container.innerHTML = "";
+      if (!alerts || alerts.length === 0) {
+        container.innerHTML = '<p style="font-size: 12.5px; color: var(--text-secondary); padding: 12px 0;">No active alerts. All machines operating normally.</p>';
+        return;
+      }
+      alerts.slice(0, 3).forEach(a => {
+        const div = document.createElement("div");
+        div.className = "diag-box";
+        div.style.padding = "10px 14px";
+        div.style.marginBottom = "8px";
+        div.style.borderLeftColor = a.severity === "CRITICAL" ? "var(--critical)" : "var(--warning)";
+        div.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <strong class="mono" style="font-size: 11.5px;">${a.alert_code} &bull; ${a.machine_id}</strong>
+            <span class="badge ${a.severity.toLowerCase()}">${a.severity}</span>
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-primary);">${a.description}</p>
+          <div style="margin-top: 6px; display: flex; justify-content: flex-end;">
+            <button class="quick-btn primary" style="padding: 2px 8px; font-size: 11px;" onclick="investigateAlertWithAI('${a.machine_id}', '${a.alert_code}', '${a.description.replace(/'/g, "\\'")}')">
+              Investigate with AI &rarr;
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Render Technical SVG Line Graph for M204
+    async function renderOverviewSparkline() {
+      try {
+        const history = await fetch(`${API_BASE}/sensors/M204/history?limit=30`).then(r => r.json());
+        if (!history || history.length < 2) return;
+
+        const container = document.getElementById("overview-chart-container");
+        const temps = history.map(h => h.temperature);
+        const minT = Math.min(...temps) - 2;
+        const maxT = Math.max(...temps) + 2;
+        const w = 480;
+        const h = 200;
+        const padX = 40;
+        const padY = 20;
+
+        const points = temps.map((t, idx) => {
+          const x = padX + (idx / (temps.length - 1)) * (w - padX * 2);
+          const y = h - padY - ((t - minT) / (maxT - minT)) * (h - padY * 2);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ");
+
+        const latestT = temps[temps.length - 1].toFixed(1);
+        const limitY = h - padY - ((80.0 - minT) / (maxT - minT)) * (h - padY * 2);
+
+        container.innerHTML = `
+          <svg class="tech-chart" viewBox="0 0 ${w} ${h}">
+            <!-- Grid Lines -->
+            <line x1="${padX}" y1="${padY}" x2="${w - padX}" y2="${padY}" stroke="#E5E8E5" stroke-dasharray="2"/>
+            <line x1="${padX}" y1="${h/2}" x2="${w - padX}" y2="${h/2}" stroke="#E5E8E5" stroke-dasharray="2"/>
+            <line x1="${padX}" y1="${h - padY}" x2="${w - padX}" y2="${h - padY}" stroke="#D0D6D0"/>
+
+            <!-- Upper Alarm Threshold 80.0°C -->
+            <line x1="${padX}" y1="${limitY}" x2="${w - padX}" y2="${limitY}" stroke="var(--critical)" stroke-dasharray="4"/>
+            <text x="${w - padX}" y="${limitY - 4}" fill="var(--critical)" font-family="IBM Plex Mono" font-size="9" text-anchor="end">MAX THRESHOLD (80°C)</text>
+
+            <!-- Line Trend -->
+            <polyline fill="none" stroke="var(--accent-primary)" stroke-width="2" points="${points}" />
+
+            <!-- Min/Max Labels -->
+            <text x="${padX - 8}" y="${padY + 4}" fill="#737D76" font-family="IBM Plex Mono" font-size="10" text-anchor="end">${maxT.toFixed(0)}°C</text>
+            <text x="${padX - 8}" y="${h - padY}" fill="#737D76" font-family="IBM Plex Mono" font-size="10" text-anchor="end">${minT.toFixed(0)}°C</text>
+
+            <!-- Latest Point Indicator -->
+            <circle cx="${padX + (w - padX * 2)}" cy="${h - padY - ((temps[temps.length-1] - minT) / (maxT - minT)) * (h - padY * 2)}" r="4" fill="var(--accent-primary)" />
+            <text x="${padX + (w - padX * 2)}" y="${h - padY - ((temps[temps.length-1] - minT) / (maxT - minT)) * (h - padY * 2) - 8}" fill="var(--accent-primary)" font-family="IBM Plex Mono" font-size="11" font-weight="600" text-anchor="middle">${latestT}°C</text>
+          </svg>
+        `;
+      } catch (e) {
+        console.error("Sparkline chart error:", e);
+      }
+    }
+
+    // Inspect Machine
+    function inspectMachine(machineId) {
+      currentDetailMachineId = machineId;
+      navigate('asset-monitoring');
+      showMachineDetail(machineId);
+    }
+
+    async function fetchAssetMonitoringData() {
+      const machines = await fetch(`${API_BASE}/machines`).then(r => r.json());
+      cachedMachines = machines;
+      filterAssets();
+      if (currentDetailMachineId) showMachineDetail(currentDetailMachineId);
+    }
+
+    function filterAssets() {
+      const query = document.getElementById("asset-search-input").value.toLowerCase();
+      const dept = document.getElementById("asset-dept-select").value;
+      const filtered = cachedMachines.filter(m => {
+        const matchesQuery = m.id.toLowerCase().includes(query) || m.name.toLowerCase().includes(query);
+        const matchesDept = !dept || m.department === dept;
+        return matchesQuery && matchesDept;
+      });
+
+      const tbody = document.getElementById("asset-monitoring-table-body");
+      tbody.innerHTML = "";
+      filtered.forEach(m => {
+        const tr = document.createElement("tr");
+        tr.className = "clickable";
+        tr.onclick = () => showMachineDetail(m.id);
+        tr.innerHTML = `
+          <td><strong class="mono" style="color: var(--accent-primary);">${m.id}</strong></td>
+          <td><strong>${m.name}</strong></td>
+          <td style="font-size: 12px; color: var(--text-secondary);">${m.machine_type}</td>
+          <td>${m.department}</td>
+          <td class="mono"><strong>${m.health_score.toFixed(1)}%</strong></td>
+          <td class="mono">${m.operating_hours.toFixed(0)} hrs</td>
+          <td><span class="badge ${m.status.toLowerCase()}">${m.status}</span></td>
+          <td><button class="quick-btn" style="padding: 3px 8px;">View &rarr;</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function showMachineDetail(machineId) {
+      currentDetailMachineId = machineId;
+      const panel = document.getElementById("machine-detail-panel");
+      panel.classList.remove("hidden");
+
+      const m = await fetch(`${API_BASE}/machines/${machineId}`).then(r => r.json());
+      document.getElementById("detail-panel-title").innerText = `Asset Specification & Operating Envelope: ${m.id} - ${m.name}`;
+
+      const grid = document.getElementById("detail-specs-grid");
+      grid.innerHTML = `
+        <div class="diag-box">
+          <p><strong>Department:</strong> ${m.department}</p>
+          <p style="margin-top: 4px;"><strong>Machine Type:</strong> ${m.machine_type}</p>
+          <p style="margin-top: 4px;"><strong>Installation Date:</strong> ${m.installation_date}</p>
+        </div>
+        <div class="diag-box">
+          <p><strong>Operating Hours:</strong> <span class="mono">${m.operating_hours} hrs</span></p>
+          <p style="margin-top: 4px;"><strong>Plant Criticality:</strong> <span class="badge ${m.criticality === 'HIGH' ? 'critical' : 'warning'}">${m.criticality}</span></p>
+          <p style="margin-top: 4px;"><strong>Health Condition:</strong> <span class="mono"><strong>${m.health_score.toFixed(1)}%</strong></span></p>
+        </div>
+        <div class="diag-box">
+          <p><strong>Last Service:</strong> <span class="mono">${m.last_maintenance}</span></p>
+          <p style="margin-top: 4px;"><strong>Next Scheduled:</strong> <span class="mono">${m.next_maintenance}</span></p>
+          <p style="margin-top: 4px;"><strong>Current State:</strong> <span class="badge ${m.status.toLowerCase()}">${m.status}</span></p>
+        </div>
+      `;
+
+      const tGrid = document.getElementById("detail-telemetry-cards");
+      tGrid.innerHTML = `
+        <div class="kpi-card">
+          <span class="kpi-label">Temperature Baseline</span>
+          <span class="kpi-value">${m.current_temp ? m.current_temp.toFixed(1) + ' °C' : '--'}</span>
+          <span class="kpi-sub mono">Limit: ${m.temp_max}°C</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Vibration RMS</span>
+          <span class="kpi-value">${m.current_vib ? m.current_vib.toFixed(2) + ' mm/s' : '--'}</span>
+          <span class="kpi-sub mono">ISO Limit: ${m.vib_max} mm/s</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Hydraulic / Line Pressure</span>
+          <span class="kpi-value">${m.current_press ? m.current_press.toFixed(1) + ' bar' : '--'}</span>
+          <span class="kpi-sub mono">Head: ${m.press_min} - ${m.press_max} bar</span>
+        </div>
+      `;
+    }
+
+    // AI Diagnostics RAG Submission
+    function setQueryPrompt(promptText, machineId) {
+      document.getElementById("diag-query-input").value = promptText;
+      if (machineId) document.getElementById("diag-machine-select").value = machineId;
+    }
+
+    async function submitDiagnosticQuery() {
+      const query = document.getElementById("diag-query-input").value.trim();
+      const machineId = document.getElementById("diag-machine-select").value || null;
+      if (!query) return;
+
+      const loading = document.getElementById("diag-loading");
+      const resultContainer = document.getElementById("diag-result-container");
+      const btn = document.getElementById("btn-submit-diag");
+
+      loading.classList.remove("hidden");
+      btn.disabled = true;
+
+      try {
+        const payload = { query, machine_id: machineId, include_maintenance_history: true, top_k: 4 };
+        const res = await fetch(`${API_BASE}/diagnostics/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        // Fill Results
+        document.getElementById("diag-summary-text").innerText = res.diagnostic_summary;
+        document.getElementById("diag-rationale-text").innerText = "Rationale: " + res.confidence_rationale;
+
+        const badge = document.getElementById("diag-confidence-badge");
+        badge.innerText = res.confidence_level;
+        badge.className = "badge " + (res.confidence_level === 'HIGH' ? 'operational' : (res.confidence_level === 'MEDIUM' ? 'maintenance' : 'critical'));
+
+        const causesList = document.getElementById("diag-causes-list");
+        causesList.innerHTML = res.probable_causes.map(c => `<li>${c}</li>`).join("");
+
+        const inspList = document.getElementById("diag-inspections-list");
+        inspList.innerHTML = res.recommended_inspections.map(i => `<li>${i}</li>`).join("");
+
+        const stepsList = document.getElementById("diag-steps-list");
+        stepsList.innerHTML = res.step_by_step_troubleshooting.map(s => `<li>${s}</li>`).join("");
+
+        const safetyList = document.getElementById("diag-safety-list");
+        safetyList.innerHTML = res.safety_precautions.map(p => `<li><strong>${p}</strong></li>`).join("");
+
+        // Citations List
+        const citesContainer = document.getElementById("diag-citations-list");
+        citesContainer.innerHTML = "";
+        if (res.citations && res.citations.length > 0) {
+          res.citations.forEach((cite, idx) => {
+            const div = document.createElement("div");
+            div.className = "citation-card";
+            div.innerHTML = `
+              <div class="citation-header">
+                <span class="citation-title">[REF ${idx+1}] ${cite.document_name} &bull; Page ${cite.page_number}</span>
+                <span class="citation-score">Cosine Similarity: ${(cite.similarity_score * 100).toFixed(1)}%</span>
+              </div>
+              <div class="citation-excerpt">${cite.excerpt}</div>
+            `;
+            citesContainer.appendChild(div);
+          });
+        } else {
+          citesContainer.innerHTML = '<p style="font-size: 12px; color: var(--text-secondary);">No corroborating documents met threshold.</p>';
+        }
+
+        document.getElementById("diag-metadata-footer").innerText = `Engine: ${res.llm_provider} | Generated: ${res.generated_at}`;
+        resultContainer.classList.remove("hidden");
+      } catch (err) {
+        alert("Diagnostic retrieval error: " + err);
+      } finally {
+        loading.classList.add("hidden");
+        btn.disabled = false;
+      }
+    }
+
+    // Investigate from Alert
+    function investigateAlertWithAI(machineId, alertCode, description) {
+      navigate('ai-diagnostics');
+      setQueryPrompt(`Machine ${machineId} triggered alert ${alertCode}: ${description}. What are the probable root causes and standard operating procedures to rectify this?`, machineId);
+      submitDiagnosticQuery();
+    }
+
+    function investigateMachineWithAI(machineId) {
+      navigate('ai-diagnostics');
+      setQueryPrompt(`Conduct comprehensive diagnostic health inspection on ${machineId}. Review nominal tolerances and check for recent anomalies.`, machineId);
+      submitDiagnosticQuery();
+    }
+
+    // Documents Knowledge Base
+    async function fetchDocuments() {
+      try {
+        const docs = await fetch(`${API_BASE}/documents`).then(r => r.json());
+        const tbody = document.getElementById("documents-table-body");
+        tbody.innerHTML = "";
+        docs.forEach(d => {
+          const sizeKb = (d.file_size / 1024).toFixed(1) + " KB";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><strong style="color: var(--accent-primary);">${d.original_name}</strong></td>
+            <td><span class="mono" style="font-size: 11px;">${d.document_type}</span></td>
+            <td class="mono">${d.page_count}</td>
+            <td class="mono"><strong>${d.chunk_count}</strong></td>
+            <td class="mono">${sizeKb}</td>
+            <td><span class="badge operational">${d.status}</span></td>
+            <td class="mono" style="font-size: 11px;">${new Date(d.upload_timestamp).toLocaleString()}</td>
+            <td>
+              <button class="quick-btn" style="padding: 2px 6px; color: var(--critical);" onclick="deleteDocument(${d.id})">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("Failed to load documents:", e);
+      }
+    }
+
+    async function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const status = document.getElementById("doc-upload-status");
+      status.innerText = `Extracting pages and indexing '${file.name}' into FAISS vector database...`;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("document_type", "TECHNICAL_MANUAL");
+
+      try {
+        const res = await fetch(`${API_BASE}/documents/upload`, {
+          method: "POST",
+          body: formData
+        }).then(r => r.json());
+
+        status.innerText = `Success: Indexed ${res.chunk_count} semantic chunks from ${res.page_count} pages!`;
+        fetchDocuments();
+      } catch (err) {
+        status.innerText = "Upload failed: " + err;
+      }
+    }
+
+    async function deleteDocument(docId) {
+      if (!confirm("Are you sure you want to remove this document and re-index the vector store?")) return;
+      await fetch(`${API_BASE}/documents/${docId}`, { method: "DELETE" });
+      fetchDocuments();
+    }
+
+    // Sensor Analytics View
+    async function updateSensorAnalyticsView() {
+      const mId = document.getElementById("sensor-machine-select").value || "M204";
+      try {
+        const [readings, history] = await Promise.all([
+          fetch(`${API_BASE}/sensors/latest`).then(r => r.json()),
+          fetch(`${API_BASE}/sensors/${mId}/history?limit=30`).then(r => r.json())
+        ]);
+
+        const cur = readings[mId];
+        if (!cur) return;
+
+        // Render Gauges
+        const gContainer = document.getElementById("sensor-gauges-grid");
+        gContainer.innerHTML = `
+          <div class="kpi-card">
+            <span class="kpi-label">Casing Temperature</span>
+            <span class="kpi-value ${cur.temperature > cur.nominal_limits.temp_max ? 'style=\"color:var(--critical);\"' : ''}">${cur.temperature.toFixed(1)} °C</span>
+            <span class="kpi-sub mono">Nominal: &lt; ${cur.nominal_limits.temp_max}°C</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Vibration Velocity</span>
+            <span class="kpi-value ${cur.vibration > cur.nominal_limits.vib_max ? 'style=\"color:var(--warning);\"' : ''}">${cur.vibration.toFixed(2)} mm/s</span>
+            <span class="kpi-sub mono">ISO 10816 Limit: ${cur.nominal_limits.vib_max} mm/s</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Hydraulic / Line Pressure</span>
+            <span class="kpi-value">${cur.pressure.toFixed(1)} bar</span>
+            <span class="kpi-sub mono">Range: ${cur.nominal_limits.press_min} - ${cur.nominal_limits.press_max} bar</span>
+          </div>
+        `;
+
+        // Render Technical Trend Charts
+        renderSingleSensorChart("chart-temp-container", history.map(h => h.temperature), "°C", cur.nominal_limits.temp_max, "var(--accent-primary)");
+        renderSingleSensorChart("chart-vib-container", history.map(h => h.vibration), "mm/s", cur.nominal_limits.vib_max, "var(--warning)");
+        renderSingleSensorChart("chart-press-container", history.map(h => h.pressure), "bar", null, "var(--accent-secondary)");
+        renderSingleSensorChart("chart-curr-container", history.map(h => h.current), "A", null, "#4A6E82");
+      } catch (e) {
+        console.error("Sensor analytics error:", e);
+      }
+    }
+
+    function renderSingleSensorChart(containerId, dataVals, unit, limitVal, color) {
+      if (!dataVals || dataVals.length < 2) return;
+      const container = document.getElementById(containerId);
+      const minV = Math.min(...dataVals) * 0.9;
+      const maxV = Math.max(...dataVals) * 1.1;
+      const w = 480;
+      const h = 200;
+      const padX = 40;
+      const padY = 20;
+
+      const points = dataVals.map((v, idx) => {
+        const x = padX + (idx / (dataVals.length - 1)) * (w - padX * 2);
+        const y = h - padY - ((v - minV) / (maxV - minV || 1)) * (h - padY * 2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
+
+      let limitLine = "";
+      if (limitVal !== null && limitVal >= minV && limitVal <= maxV) {
+        const ly = h - padY - ((limitVal - minV) / (maxV - minV || 1)) * (h - padY * 2);
+        limitLine = `
+          <line x1="${padX}" y1="${ly}" x2="${w - padX}" y2="${ly}" stroke="var(--critical)" stroke-dasharray="3"/>
+          <text x="${w - padX}" y="${ly - 4}" fill="var(--critical)" font-family="IBM Plex Mono" font-size="9" text-anchor="end">LIMIT (${limitVal} ${unit})</text>
+        `;
+      }
+
+      const latest = dataVals[dataVals.length - 1].toFixed(1);
+
+      container.innerHTML = `
+        <svg class="tech-chart" viewBox="0 0 ${w} ${h}">
+          <line x1="${padX}" y1="${padY}" x2="${w - padX}" y2="${padY}" stroke="#E5E8E5" stroke-dasharray="2"/>
+          <line x1="${padX}" y1="${h/2}" x2="${w - padX}" y2="${h/2}" stroke="#E5E8E5" stroke-dasharray="2"/>
+          <line x1="${padX}" y1="${h - padY}" x2="${w - padX}" y2="${h - padY}" stroke="#D0D6D0"/>
+          ${limitLine}
+          <polyline fill="none" stroke="${color}" stroke-width="2" points="${points}" />
+          <circle cx="${padX + (w - padX * 2)}" cy="${h - padY - ((dataVals[dataVals.length-1] - minV) / (maxV - minV || 1)) * (h - padY * 2)}" r="4" fill="${color}" />
+          <text x="${padX - 8}" y="${padY + 4}" fill="#737D76" font-family="IBM Plex Mono" font-size="10" text-anchor="end">${maxV.toFixed(1)}</text>
+          <text x="${padX - 8}" y="${h - padY}" fill="#737D76" font-family="IBM Plex Mono" font-size="10" text-anchor="end">${minV.toFixed(1)}</text>
+          <text x="${padX + (w - padX * 2)}" y="${padY + 12}" fill="${color}" font-family="IBM Plex Mono" font-size="11" font-weight="600" text-anchor="end">NOW: ${latest} ${unit}</text>
+        </svg>
+      `;
+    }
+
+    // Maintenance Logs
+    async function fetchMaintenanceLogs() {
+      const records = await fetch(`${API_BASE}/maintenance`).then(r => r.json());
+      cachedMaintenance = records;
+      filterMaintenanceLogs();
+    }
+
+    function filterMaintenanceLogs() {
+      const query = document.getElementById("maint-search-input").value.toLowerCase();
+      const mach = document.getElementById("maint-machine-filter").value;
+
+      const filtered = cachedMaintenance.filter(r => {
+        const matchesQuery = r.reported_issue.toLowerCase().includes(query) || (r.error_code && r.error_code.toLowerCase().includes(query)) || r.root_cause.toLowerCase().includes(query);
+        const matchesMach = !mach || r.machine_id === mach;
+        return matchesQuery && matchesMach;
+      });
+
+      const tbody = document.getElementById("maintenance-table-body");
+      tbody.innerHTML = "";
+      filtered.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="mono" style="font-size: 11.5px;">${r.maintenance_date}</td>
+          <td><strong class="mono" style="color: var(--accent-primary);">${r.machine_id}</strong></td>
+          <td><span class="mono" style="background: #E8ECE8; padding: 2px 6px; border-radius: 2px; font-weight: 600;">${r.error_code}</span></td>
+          <td><strong>${r.reported_issue}</strong></td>
+          <td style="font-size: 12px; color: var(--text-secondary);">${r.root_cause}</td>
+          <td style="font-size: 12px;">${r.corrective_action}</td>
+          <td class="mono">${r.downtime_hours} hrs</td>
+          <td style="font-size: 11.5px;">${r.technician_name}</td>
+          <td><span class="badge ${r.resolution_status === 'RESOLVED' ? 'operational' : 'maintenance'}">${r.resolution_status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function submitLogMaintenance() {
+      const payload = {
+        machine_id: document.getElementById("log-maint-machine").value,
+        maintenance_date: new Date().toISOString().split("T")[0],
+        reported_issue: document.getElementById("log-maint-issue").value,
+        error_code: document.getElementById("log-maint-error").value || "N/A",
+        root_cause: document.getElementById("log-maint-cause").value,
+        corrective_action: document.getElementById("log-maint-action").value,
+        technician_name: "Senior Maintenance Specialist",
+        downtime_hours: parseFloat(document.getElementById("log-maint-downtime").value) || 1.0,
+        resolution_status: document.getElementById("log-maint-status").value
+      };
+
+      try {
+        await fetch(`${API_BASE}/maintenance`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        closeModal("modal-log-maint");
+        fetchMaintenanceLogs();
+        fetchOverviewData();
+      } catch (e) {
+        alert("Failed to save log: " + e);
+      }
+    }
+
+    function openLogMaintenanceModalFromDiag() {
+      const mId = document.getElementById("diag-machine-select").value || "M204";
+      document.getElementById("log-maint-machine").value = mId;
+      openModal("modal-log-maint");
+    }
+
+    // Alerts Center
+    async function fetchAlerts() {
+      const status = document.getElementById("alert-status-filter").value;
+      const sev = document.getElementById("alert-sev-filter").value;
+      let url = `${API_BASE}/alerts?`;
+      if (status) url += `status=${status}&`;
+      if (sev) url += `severity=${sev}&`;
+
+      const alerts = await fetch(url).then(r => r.json());
+      cachedAlerts = alerts;
+
+      const tbody = document.getElementById("alerts-table-body");
+      tbody.innerHTML = "";
+      alerts.forEach(a => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="mono"><strong>${a.alert_code}</strong></td>
+          <td><span class="badge ${a.severity.toLowerCase()}">${a.severity}</span></td>
+          <td><strong class="mono" style="color: var(--accent-primary);">${a.machine_id}</strong><br><span style="font-size: 11px; color: var(--text-secondary);">${a.machine_name || ''}</span></td>
+          <td>${a.category}</td>
+          <td>${a.description}</td>
+          <td class="mono" style="font-size: 11.5px;">${new Date(a.timestamp).toLocaleString()}</td>
+          <td><span class="badge ${a.status === 'NEW' ? 'critical' : (a.status === 'ACKNOWLEDGED' ? 'maintenance' : 'operational')}">${a.status}</span></td>
+          <td>
+            <div class="flex-row">
+              <button class="quick-btn primary" style="padding: 2px 6px; font-size: 11px;" onclick="investigateAlertWithAI('${a.machine_id}', '${a.alert_code}', '${a.description.replace(/'/g, "\\'")}')">AI &rarr;</button>
+              ${a.status === 'NEW' ? `<button class="quick-btn" style="padding: 2px 6px; font-size: 11px;" onclick="updateAlertStatus(${a.id}, 'ACKNOWLEDGED')">Ack</button>` : ''}
+              ${a.status !== 'RESOLVED' ? `<button class="quick-btn" style="padding: 2px 6px; font-size: 11px;" onclick="updateAlertStatus(${a.id}, 'RESOLVED')">Resolve</button>` : ''}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateAlertStatus(alertId, newStatus) {
+      await fetch(`${API_BASE}/alerts/${alertId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      fetchAlerts();
+      fetchOverviewData();
+    }
+
+    // Simulator Anomaly Injector
+    async function submitInjectAnomaly() {
+      const mId = document.getElementById("sim-inject-machine").value;
+      const type = document.getElementById("sim-inject-type").value;
+      const sev = parseFloat(document.getElementById("sim-inject-sev").value) || 1.35;
+
+      try {
+        const res = await fetch(`${API_BASE}/sensors/inject`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ machine_id: mId, anomaly_type: type, severity_multiplier: sev })
+        }).then(r => r.json());
+
+        // Run ML evaluation immediately on that machine to trip Isolation Forest & raise alert
+        if (type !== 'RESET') {
+          await fetch(`${API_BASE}/anomalies/evaluate/${mId}`, { method: "POST" });
+        }
+
+        closeModal("modal-simulator");
+        alert(res.message);
+        fetchOverviewData();
+        if (document.getElementById("view-sensor-analytics").classList.contains("hidden") === false) {
+          updateSensorAnalyticsView();
+        }
+      } catch (e) {
+        alert("Failed to inject anomaly: " + e);
+      }
+    }
+
+    // Settings
+    async function fetchSettings() {
+      const s = await fetch(`${API_BASE}/settings`).then(r => r.json());
+      document.getElementById("settings-provider-select").value = s.llm_provider;
+      document.getElementById("settings-model-name").value = s.model_name;
+      document.getElementById("diag-stat-engine").innerText = s.vector_store.engine;
+      document.getElementById("diag-stat-dim").innerText = s.vector_store.vector_dimension;
+      document.getElementById("diag-stat-chunks").innerText = s.vector_store.total_chunks;
+    }
+
+    async function saveSettings() {
+      const payload = {
+        llm_provider: document.getElementById("settings-provider-select").value,
+        api_key: document.getElementById("settings-api-key").value || null,
+        model_name: document.getElementById("settings-model-name").value || null
+      };
+      await fetch(`${API_BASE}/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      alert("LLM Inference settings saved successfully.");
+      fetchSettings();
+    }
+
+    async function testBackendHealth() {
+      const out = document.getElementById("health-test-result");
+      out.innerText = "Probing REST APIs, Database Connection, and Vector Store...";
+      const h = await fetch("/health").then(r => r.json());
+      out.innerText = `[PASS] System: ${h.system} | Version: ${h.version} | Status: ${h.status}`;
+    }
+
+    // Periodic Background Polling for Telemetry (Every 3 seconds)
+    function startPolling() {
+      if (pollingTimer) clearInterval(pollingTimer);
+      pollingTimer = setInterval(() => {
+        // Fast tick to update charts if active
+        if (!document.getElementById("view-overview").classList.contains("hidden")) {
+          renderOverviewSparkline();
+        } else if (!document.getElementById("view-sensor-analytics").classList.contains("hidden")) {
+          updateSensorAnalyticsView();
+        }
+      }, 3000);
+    }
+
+    // Initial Load
+    window.addEventListener("DOMContentLoaded", () => {
+      fetchOverviewData();
+      startPolling();
+    });
+  </script>
+</body>
+</html>

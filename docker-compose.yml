@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  imis-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imis_platform
+    ports:
+      - "8000:8000"
+    environment:
+      - LLM_PROVIDER=GEMINI
+      - LLM_MODEL_NAME=gemini-1.5-flash
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - SIMULATION_INTERVAL_SEC=2.0
+    volumes:
+      - ./backend/vector_store:/app/backend/vector_store
+      - ./backend/uploads:/app/backend/uploads
+    restart: unless-stopped

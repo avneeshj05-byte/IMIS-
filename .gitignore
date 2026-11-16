@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+.npm
+.npm-cache/
+.npm-global/
+dist/
+frontend/dist/
+*.local
+
+# SQLite databases & runtime test logs
+*.db-journal
+test_*.py
+backend/test_*.py
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+
+# IMIS temporary runtime uploads (keep sample_docs and baseline seed assets)
+backend/uploads/*
+!backend/uploads/.gitkeep

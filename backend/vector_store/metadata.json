@@ -1,0 +1,100 @@
+[
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 0,
+    "content": "IMIS TECHNICAL SPECIFICATION & OEM REPAIR MANUAL M204 CONVEYOR DRIVE MOTOR OEM SERVICE MANUAL - Page 1 REV 2.4 SECTION 1: EQUIPMENT OVERVIEW & NOMINAL OPERATING RANGES Asset ID: M204 (Three-Phase AC Asynchronous Motor, 15kW, 400V, 50Hz, 1480 RPM). Department: Assembly Line 2 - Main Material Handling. Nominal Motor Casing Temperature: 55°C to 65°C. Maximum Permissible Continuous Temperature: 80.0°C. Tripping Alarm Threshold: 85.0°C. Vibration Tolerance: Below 4.2 mm/s RMS (ISO 10816-3 Class II Rigid Mount). SECTION 2: ERROR CODE E17 DIAGNOSTIC MATRIX Error"
+  },
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 1,
+    "content": "SECTION 2: ERROR CODE E17 DIAGNOSTIC MATRIX Error Code E17 designates 'Motor Thermal Overload & Abnormal Winding Rise'. Observed Condition: Motor temperature elevates rapidly above nominal baseline (e.g., 18% increase over 2 hours). Probable Causes of Error E17: 1. Drive pulley bearing race galling and grease starvation in 6308-2RS deep groove ball bearings. 2. High mechanical conveyor belt drag caused by roller bearing seizure or foreign debris in belt guide channels. 3. Obstructed ventilation cowlings or dust buildup on motor cooling fins reducing"
+  },
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 2,
+    "content": "or dust buildup on motor cooling fins reducing heat dissipation. 4. Single-phasing or abnormal voltage imbalance causing stator phase current to spike above 18.0 Amperes. Recommended Inspections: - Step A: Verify motor free rotation by disengaging the drive coupling and turning shaft manually. - Step B: Measure three-phase current balance using a calibrated True-RMS clamp meter. - Step C: Thermographic scan of drive-end and non-drive-end bearing housings to isolate friction source. - Step D: Inspect cooling fan impellers for broken blades or shroud"
+  },
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 3,
+    "content": "cooling fan impellers for broken blades or shroud clogging. STRICTLY FOR AUTHORIZED MAINTENANCE PERSONNEL - LOCKOUT/TAGOUT REQUIRED Page 1 of 2"
+  },
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 2,
+    "chunk_index": 4,
+    "content": "IMIS TECHNICAL SPECIFICATION & OEM REPAIR MANUAL M204 CONVEYOR DRIVE MOTOR OEM SERVICE MANUAL - Page 2 REV 2.4 SECTION 3: STEP-BY-STEP TROUBLESHOOTING & REPAIR PROCEDURE FOR E17 When Error E17 is logged by the PLC: 1. Execute OSHA Lockout/Tagout (LOTO 29 CFR 1910.147). Disconnect main 400V feeder at Panel MCC-4. 2. Allow motor surface to cool below 45°C before handling. 3. Clean cooling fins with dry compressed air (< 30 PSI) to restore thermal convection. 4. If bearing acoustic signature exhibits grinding"
+  },
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 2,
+    "chunk_index": 5,
+    "content": "convection. 4. If bearing acoustic signature exhibits grinding or vibration exceeds 4.2 mm/s RMS: a. Extract motor drive-end bearing using mechanical three-jaw puller. b. Inspect shaft journal for fretting corrosion. c. Install replacement SKF 6308 C3 bearing using induction bearing heater (110°C). d. Pack bearing housing with Mobil Polyrex EM synthetic polyurea grease (35 grams). 5. Reassemble drive coupling and check laser shaft alignment (angular offset < 0.05 mm). 6. Clear fault register E17 on VFD control panel and run motor under no-load"
+  },
+  {
+    "document_id": 1,
+    "document_name": "M204_Conveyor_Motor_Technical_Manual.pdf",
+    "page_number": 2,
+    "chunk_index": 6,
+    "content": "VFD control panel and run motor under no-load condition for 20 minutes. SAFETY PRECAUTIONS: - Always verify zero energy state with a certified voltage tester prior to touching terminal block. - Wear safety glasses, thermal gloves, and steel-toe footwear during bearing removal. STRICTLY FOR AUTHORIZED MAINTENANCE PERSONNEL - LOCKOUT/TAGOUT REQUIRED Page 2 of 2"
+  },
+  {
+    "document_id": 2,
+    "document_name": "M201_CNC_Milling_Spindle_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 0,
+    "content": "IMIS TECHNICAL SPECIFICATION & OEM REPAIR MANUAL M201 5-AXIS CNC MILLING SPINDLE SERVICE SPECIFICATION - Page 1 REV 2.4 SECTION 1: SPINDLE TOLERANCES & ERROR E04 Asset ID: M201 - 5-Axis Vertical Machining Center. Spindle Speed: 0 to 12,000 RPM. Error Code E04 indicates 'Spindle Harmonic Vibration Imbalance & Bearing Runout'. Probable Causes of Error E04: 1. Toolholder taper contamination (chips or coolant residue inside HSK-A63 taper). 2. Spindle ceramic hybrid angular contact bearing preload loss or raceway flaking. 3. Unbalanced cutting tool"
+  },
+  {
+    "document_id": 2,
+    "document_name": "M201_CNC_Milling_Spindle_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 1,
+    "content": "loss or raceway flaking. 3. Unbalanced cutting tool assembly running at speeds exceeding 6,000 RPM. 4. Drawbar collet spring fatigue causing improper pull-stud retention force (< 12 kN). Recommended Inspections: - Inspect HSK-A63 spindle taper bore using an illuminated inspection mirror. - Measure spindle radial runout at tool nose with 0.001mm dial test indicator. - Verify drawbar clamping retention force with digital force gauge (Nominal: 14.5 kN). - Perform FFT vibration spectrum analysis to check 1X and 2X rotational frequency peaks. STRICTLY FOR"
+  },
+  {
+    "document_id": 2,
+    "document_name": "M201_CNC_Milling_Spindle_Manual.pdf",
+    "page_number": 1,
+    "chunk_index": 2,
+    "content": "1X and 2X rotational frequency peaks. STRICTLY FOR AUTHORIZED MAINTENANCE PERSONNEL - LOCKOUT/TAGOUT REQUIRED Page 1 of 2"
+  },
+  {
+    "document_id": 2,
+    "document_name": "M201_CNC_Milling_Spindle_Manual.pdf",
+    "page_number": 2,
+    "chunk_index": 3,
+    "content": "IMIS TECHNICAL SPECIFICATION & OEM REPAIR MANUAL M201 5-AXIS CNC MILLING SPINDLE SERVICE SPECIFICATION - Page 2 REV 2.4 SECTION 2: CORRECTIVE SOP FOR SPINDLE REPAIR 1. Clean spindle taper with solvent-wetted brass taper wiper. 2. Dynamically balance tool assemblies on tool pre-setter to G2.5 at 12,000 RPM. 3. If vibration persists above 4.5 mm/s RMS, replace drawbar Belleville disc spring stack. 4. Recalibrate spindle chiller circuit temperature setpoint (20.0°C ± 0.5°C). STRICTLY FOR AUTHORIZED MAINTENANCE PERSONNEL - LOCKOUT/TAGOUT REQUIRED Page 2 of"
+  },
+  {
+    "document_id": 2,
+    "document_name": "M201_CNC_Milling_Spindle_Manual.pdf",
+    "page_number": 2,
+    "chunk_index": 4,
+    "content": "MAINTENANCE PERSONNEL - LOCKOUT/TAGOUT REQUIRED Page 2 of 2"
+  },
+  {
+    "document_id": 3,
+    "document_name": "M202_Hydraulic_Press_SOP.pdf",
+    "page_number": 1,
+    "chunk_index": 0,
+    "content": "IMIS TECHNICAL SPECIFICATION & OEM REPAIR MANUAL M202 300-TON HYDRAULIC PRESS MAINTENANCE SOP - Page 1 REV 2.4 SECTION 1: HYDRAULIC SYSTEM OVERVIEW & ERROR E88 Asset ID: M202 - Hydraulic Forming Press. Nominal Pressure: 160.0 bar. Error Code E88 designates 'Hydraulic Pressure Attenuation / Proportional Relief Valve Fault'. Probable Causes: 1. Proportional relief valve spool sticking due to hydraulic oil contamination (ISO 4406 > 19/17/14). 2. Piston seal extrusion or cylinder gland leakage causing internal fluid bypass. 3. Suction line cavitation caused"
+  },
+  {
+    "document_id": 3,
+    "document_name": "M202_Hydraulic_Press_SOP.pdf",
+    "page_number": 1,
+    "chunk_index": 1,
+    "content": "internal fluid bypass. 3. Suction line cavitation caused by clogged 10-micron return line filter element. 4. Main axial piston pump swashplate bearing wear. Recommended Inspections & Corrective Actions: - Check hydraulic reservoir sight glass for fluid foaming or emulsion. - Test main relief valve pilot pressure with 0-250 bar calibrated glycerine gauge. - Replace hydraulic filter cartridge (Part # HYD-FLT-882). - Top up with ISO VG 46 anti-wear hydraulic oil. STRICTLY FOR AUTHORIZED MAINTENANCE PERSONNEL - LOCKOUT/TAGOUT REQUIRED Page 1 of 1"
+  }
+]
