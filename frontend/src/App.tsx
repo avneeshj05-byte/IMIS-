@@ -7,8 +7,7 @@ import {
   Activity, 
   Wrench, 
   AlertTriangle, 
-  Settings as SettingsIcon,
-  PlayCircle
+  Settings as SettingsIcon
 } from 'lucide-react';
 import { api } from './services/api';
 import { Machine, MachineSummary, Alert } from './types';
