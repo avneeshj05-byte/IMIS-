@@ -62,10 +62,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS configuration
+# CORS configuration: allow all local and cloud origins (Vercel, Render, etc.)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
