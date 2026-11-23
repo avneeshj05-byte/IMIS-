@@ -16,6 +16,7 @@ import {
   Clock,
   Sliders,
   X,
+  Menu,
   ChevronRight,
   Info,
   ShieldAlert,
@@ -35,7 +36,7 @@ import {
   DocumentItem 
 } from './types';
 
-// Standalone SVG Telemetry Trendline Component
+// Standalone Responsive SVG Telemetry Trendline Component
 const TechSensorChart: React.FC<{
   data: number[];
   unit: string;
@@ -45,7 +46,7 @@ const TechSensorChart: React.FC<{
 }> = ({ data, unit, limitVal, color, title }) => {
   if (!data || data.length < 2) {
     return (
-      <div className="h-44 flex items-center justify-center text-xs text-[#737D76] font-mono bg-[#FAFBFA] border border-[#DDE2DD] rounded">
+      <div className="h-44 flex items-center justify-center text-xs text-[#737D76] font-mono bg-[#FAFBFA] border border-[#DDE2DD] rounded p-3 text-center">
         Gathering telemetry samples...
       </div>
     );
@@ -70,40 +71,43 @@ const TechSensorChart: React.FC<{
   const latest = data[data.length - 1];
 
   return (
-    <div className="bg-[#FAFBFA] border border-[#DDE2DD] rounded p-3">
-      <div className="flex justify-between items-center mb-1 text-xs">
-        <span className="font-semibold text-[#202A25]">{title}</span>
-        <div className="font-mono text-[11px] flex gap-3">
+    <div className="bg-[#FAFBFA] border border-[#DDE2DD] rounded p-3 sm:p-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2 text-xs">
+        <span className="font-semibold text-[#202A25] truncate">{title}</span>
+        <div className="font-mono text-[11px] flex flex-wrap gap-2 sm:gap-3">
           <span className="text-[#737D76]">Min: {Math.min(...data).toFixed(1)}</span>
           <span className="text-[#737D76]">Max: {Math.max(...data).toFixed(1)}</span>
           <span className="font-bold text-[#315C49]">Now: {latest.toFixed(1)} {unit}</span>
         </div>
       </div>
-      <svg className="w-full h-36" viewBox={`0 0 ${w} ${h}`}>
-        {/* Gridlines */}
-        <line x1={padX} y1={padY} x2={w - padX} y2={padY} stroke="#E5E8E5" strokeDasharray="3" />
-        <line x1={padX} y1={h / 2} x2={w - padX} y2={h / 2} stroke="#E5E8E5" strokeDasharray="3" />
-        <line x1={padX} y1={h - padY} x2={w - padX} y2={h - padY} stroke="#E5E8E5" strokeDasharray="3" />
-        
-        {/* Threshold limit line */}
-        {ly !== null && (
-          <g>
-            <line x1={padX} y1={ly} x2={w - padX} y2={ly} stroke="#B84C42" strokeDasharray="4" strokeWidth="1.5" />
-            <text x={w - padX - 4} y={ly - 4} fill="#B84C42" fontFamily="IBM Plex Mono" fontSize="9" textAnchor="end">
-              LIMIT ({limitVal} {unit})
-            </text>
-          </g>
-        )}
+      <div className="w-full overflow-hidden">
+        <svg className="w-full h-36" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+          {/* Gridlines */}
+          <line x1={padX} y1={padY} x2={w - padX} y2={padY} stroke="#E5E8E5" strokeDasharray="3" />
+          <line x1={padX} y1={h / 2} x2={w - padX} y2={h / 2} stroke="#E5E8E5" strokeDasharray="3" />
+          <line x1={padX} y1={h - padY} x2={w - padX} y2={h - padY} stroke="#E5E8E5" strokeDasharray="3" />
+          
+          {/* Threshold limit line */}
+          {ly !== null && (
+            <g>
+              <line x1={padX} y1={ly} x2={w - padX} y2={ly} stroke="#B84C42" strokeDasharray="4" strokeWidth="1.5" />
+              <text x={w - padX - 4} y={ly - 4} fill="#B84C42" fontFamily="IBM Plex Mono" fontSize="9" textAnchor="end">
+                LIMIT ({limitVal} {unit})
+              </text>
+            </g>
+          )}
 
-        {/* Polylines */}
-        <polyline fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={points} />
-      </svg>
+          {/* Polylines */}
+          <polyline fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={points} />
+        </svg>
+      </div>
     </div>
   );
 };
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'assets' | 'diagnostics' | 'knowledge' | 'sensors' | 'maintenance' | 'alerts' | 'settings'>('overview');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   
   // Core Operational State
   const [summary, setSummary] = useState<MachineSummary | null>(null);
@@ -330,6 +334,7 @@ export const App: React.FC = () => {
     setDiagMachine(machineId);
     if (queryPrompt) setDiagQuery(queryPrompt);
     setActiveTab('diagnostics');
+    setMobileNavOpen(false);
   };
 
   // Selected Machine Details
@@ -362,14 +367,36 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F3F4F2] text-[#202A25]">
-      {/* FIXED INDUSTRIAL SIDEBAR */}
-      <aside className="w-64 bg-[#17251F] text-[#B2BDB6] flex flex-col flex-shrink-0 border-r border-[#0E1713]">
-        <div className="p-5 border-b border-[#23342C]">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-wider text-white">IMIS</span>
-            <span className="bg-[#315C49] text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">PRO v1.0</span>
+      {/* MOBILE BACKDROP OVERLAY */}
+      {mobileNavOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setMobileNavOpen(false)} 
+        />
+      )}
+
+      {/* INDUSTRIAL SIDEBAR (DESKTOP + RESPONSIVE MOBILE DRAWER) */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-[#17251F] text-[#B2BDB6] flex flex-col flex-shrink-0 border-r border-[#0E1713]
+        transform transition-transform duration-200 ease-in-out
+        md:static md:translate-x-0 md:w-64 md:z-auto
+        ${mobileNavOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="p-5 border-b border-[#23342C] flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold tracking-wider text-white">IMIS</span>
+              <span className="bg-[#315C49] text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">PRO v1.0</span>
+            </div>
+            <p className="text-[11px] text-[#8DAA91] mt-1 font-medium tracking-wider uppercase">Industrial Maintenance Intelligence</p>
           </div>
-          <p className="text-[11px] text-[#8DAA91] mt-1 font-medium tracking-wider uppercase">Industrial Maintenance Intelligence</p>
+          <button 
+            onClick={() => setMobileNavOpen(false)}
+            className="md:hidden text-[#B2BDB6] hover:text-white p-1 rounded hover:bg-[#23342C]"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
@@ -390,6 +417,7 @@ export const App: React.FC = () => {
                 key={item.id}
                 onClick={() => {
                   setActiveTab(item.id as any);
+                  setMobileNavOpen(false);
                   if (item.id === 'sensors' && selectedMachineId) {
                     loadTelemetryData(selectedMachineId);
                   }
@@ -428,137 +456,149 @@ export const App: React.FC = () => {
 
       {/* MAIN VIEWPORT */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* TOP BAR */}
-        <header className="bg-white border-b border-[#DDE2DD] px-6 py-3 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold text-[#202A25]">
-              {activeTab === 'overview' && 'Industrial Operations Overview'}
-              {activeTab === 'assets' && 'Asset Monitoring & Specifications'}
-              {activeTab === 'diagnostics' && 'AI Diagnostics & RAG Knowledge Retrieval'}
-              {activeTab === 'knowledge' && 'Document Knowledge Base & Chunks'}
-              {activeTab === 'sensors' && 'IoT Sensor Telemetry Analytics'}
-              {activeTab === 'maintenance' && 'Equipment Maintenance History Logs'}
+        {/* RESPONSIVE TOP BAR */}
+        <header className="bg-white border-b border-[#DDE2DD] px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between flex-shrink-0 gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            {/* Hamburger toggle button for mobile */}
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="md:hidden p-1.5 -ml-1 text-[#202A25] hover:bg-[#F3F4F2] rounded focus:outline-none"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5 text-[#202A25]" />
+            </button>
+            <h1 className="text-sm sm:text-lg font-bold text-[#202A25] truncate">
+              {activeTab === 'overview' && 'Industrial Overview'}
+              {activeTab === 'assets' && 'Asset Monitoring'}
+              {activeTab === 'diagnostics' && 'AI Diagnostics & RAG'}
+              {activeTab === 'knowledge' && 'Document Knowledge Base'}
+              {activeTab === 'sensors' && 'Sensor Analytics'}
+              {activeTab === 'maintenance' && 'Maintenance Logs'}
               {activeTab === 'alerts' && 'Centralized Alert Center'}
-              {activeTab === 'settings' && 'System Settings & Operational Health'}
+              {activeTab === 'settings' && 'Settings & Health'}
             </h1>
-            <div className="inline-flex items-center gap-2 bg-[#EBF3ED] border border-[#8DAA91] text-[#315C49] font-mono text-xs font-semibold px-2.5 py-1 rounded">
+            <div className="hidden lg:inline-flex items-center gap-2 bg-[#EBF3ED] border border-[#8DAA91] text-[#315C49] font-mono text-xs font-semibold px-2.5 py-1 rounded">
               <span className="w-1.5 h-1.5 rounded-full bg-[#315C49] animate-pulse"></span>
               <span>SIMULATION MODE (PHYSICS DEGRADATION ACTIVE)</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => setShowAnomalyModal(true)}
-              className="bg-[#FAFBFA] border border-[#AAB2AA] hover:bg-[#E8ECE8] text-[#202A25] px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-2"
+              className="bg-[#FAFBFA] border border-[#AAB2AA] hover:bg-[#E8ECE8] text-[#202A25] px-2.5 sm:px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5"
             >
               <Sliders className="w-3.5 h-3.5 text-[#D69A36]" />
-              <span>Inject Anomaly</span>
+              <span className="hidden sm:inline">Inject Anomaly</span>
+              <span className="sm:hidden text-[11px]">Inject</span>
             </button>
             <button
-              onClick={() => setActiveTab('diagnostics')}
-              className="bg-[#315C49] hover:bg-[#264A3A] text-white px-3.5 py-1.5 rounded text-xs font-semibold flex items-center gap-2 shadow-sm"
+              onClick={() => { setActiveTab('diagnostics'); setMobileNavOpen(false); }}
+              className="bg-[#315C49] hover:bg-[#264A3A] text-white px-2.5 sm:px-3.5 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 shadow-sm"
             >
               <Bot className="w-4 h-4" />
-              <span>Diagnostic Assistant</span>
+              <span className="hidden sm:inline">Diagnostic Assistant</span>
+              <span className="sm:hidden text-[11px]">RAG</span>
             </button>
           </div>
         </header>
 
-        {/* CONTENT PANELS */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* CONTENT PANELS WITH RESPONSIVE PADDING */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
 
           {/* ============================================================ */}
           {/* TAB 1: OVERVIEW */}
           {/* ============================================================ */}
           {activeTab === 'overview' && (
             <>
-              {/* KPIS */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="bg-white border border-[#DDE2DD] p-4 rounded shadow-sm">
-                  <div className="text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Total Machines</div>
-                  <div className="text-2xl font-bold font-mono text-[#202A25] mt-1">{summary?.total_machines ?? 5}</div>
-                  <div className="text-[11px] text-[#737D76] mt-1">Monitored Assets</div>
+              {/* RESPONSIVE KPIS */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+                <div className="bg-white border border-[#DDE2DD] p-3 sm:p-4 rounded shadow-sm">
+                  <div className="text-[10px] sm:text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Total Machines</div>
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-[#202A25] mt-1">{summary?.total_machines ?? 5}</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#737D76] mt-0.5">Monitored Assets</div>
                 </div>
-                <div className="bg-white border border-[#DDE2DD] p-4 rounded shadow-sm">
-                  <div className="text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Operational</div>
-                  <div className="text-2xl font-bold font-mono text-[#2E7D5A] mt-1">{summary?.operational_machines ?? 4}</div>
-                  <div className="text-[11px] text-[#737D76] mt-1">Online & Normal</div>
+                <div className="bg-white border border-[#DDE2DD] p-3 sm:p-4 rounded shadow-sm">
+                  <div className="text-[10px] sm:text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Operational</div>
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-[#2E7D5A] mt-1">{summary?.operational_machines ?? 4}</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#737D76] mt-0.5">Online & Normal</div>
                 </div>
-                <div className="bg-white border border-[#DDE2DD] p-4 rounded shadow-sm">
-                  <div className="text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Under Maintenance</div>
-                  <div className="text-2xl font-bold font-mono text-[#D69A36] mt-1">{summary?.maintenance_machines ?? 1}</div>
-                  <div className="text-[11px] text-[#737D76] mt-1">Service Required</div>
+                <div className="bg-white border border-[#DDE2DD] p-3 sm:p-4 rounded shadow-sm">
+                  <div className="text-[10px] sm:text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Maintenance</div>
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-[#D69A36] mt-1">{summary?.maintenance_machines ?? 1}</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#737D76] mt-0.5">Service Required</div>
                 </div>
-                <div className="bg-white border border-[#DDE2DD] p-4 rounded shadow-sm">
-                  <div className="text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Active Alerts</div>
-                  <div className="text-2xl font-bold font-mono text-[#B84C42] mt-1">{summary?.active_alerts ?? activeAlerts.length}</div>
-                  <div className="text-[11px] text-[#737D76] mt-1">Requiring Attention</div>
+                <div className="bg-white border border-[#DDE2DD] p-3 sm:p-4 rounded shadow-sm">
+                  <div className="text-[10px] sm:text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Active Alerts</div>
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-[#B84C42] mt-1">{summary?.active_alerts ?? activeAlerts.length}</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#737D76] mt-0.5">Needs Attention</div>
                 </div>
-                <div className="bg-white border border-[#DDE2DD] p-4 rounded shadow-sm">
-                  <div className="text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Fleet Health Index</div>
-                  <div className="text-2xl font-bold font-mono text-[#315C49] mt-1">{summary?.avg_fleet_health ?? 88.6}%</div>
-                  <div className="text-[11px] text-[#737D76] mt-1">Calculated via ML</div>
+                <div className="col-span-2 sm:col-span-1 bg-white border border-[#DDE2DD] p-3 sm:p-4 rounded shadow-sm">
+                  <div className="text-[10px] sm:text-[11px] font-bold text-[#737D76] uppercase tracking-wider">Fleet Health Index</div>
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-[#315C49] mt-1">{summary?.avg_fleet_health ?? 88.6}%</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#737D76] mt-0.5">Calculated via ML</div>
                 </div>
               </div>
 
-              {/* ASSET STATUS TABLE */}
+              {/* ASSET STATUS TABLE (HORIZONTAL SCROLL ON MOBILE) */}
               <div className="bg-white border border-[#DDE2DD] rounded shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-[#DDE2DD] flex justify-between items-center bg-[#FAFBFA]">
+                <div className="p-3 sm:p-4 border-b border-[#DDE2DD] flex justify-between items-center bg-[#FAFBFA]">
                   <h3 className="text-xs font-bold text-[#202A25] uppercase tracking-wider">Asset Operational Status Matrix</h3>
                   <button onClick={loadDashboardData} className="text-xs flex items-center gap-1.5 text-[#315C49] font-semibold hover:underline">
-                    <RefreshCw className="w-3.5 h-3.5" /> Refresh Telemetry
+                    <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Refresh</span>
                   </button>
                 </div>
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
-                    <tr>
-                      <th className="p-3">ID</th>
-                      <th className="p-3">Machine Name</th>
-                      <th className="p-3">Department</th>
-                      <th className="p-3">Temperature</th>
-                      <th className="p-3">Vibration</th>
-                      <th className="p-3">Pressure</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Last Service</th>
-                      <th className="p-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2DD]">
-                    {machines.map((m) => (
-                      <tr key={m.id} className="hover:bg-[#F9FAF9]">
-                        <td className="p-3 font-mono font-bold text-[#315C49]">{m.id}</td>
-                        <td className="p-3 font-semibold">{m.name}</td>
-                        <td className="p-3 text-[#737D76]">{m.department}</td>
-                        <td className="p-3 font-mono">{m.current_temp ? `${m.current_temp.toFixed(1)} °C` : '--'}</td>
-                        <td className="p-3 font-mono">{m.current_vib ? `${m.current_vib.toFixed(2)} mm/s` : '--'}</td>
-                        <td className="p-3 font-mono">{m.current_press ? `${m.current_press.toFixed(1)} bar` : '--'}</td>
-                        <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            m.status === 'OPERATIONAL' ? 'bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]' : 'bg-[#FCF6EC] text-[#D69A36] border border-[#F2DDB8]'
-                          }`}>
-                            {m.status}
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono text-[11px]">{m.last_maintenance}</td>
-                        <td className="p-3">
-                          <button
-                            onClick={() => {
-                              setSelectedMachineId(m.id);
-                              setActiveTab('assets');
-                            }}
-                            className="text-[#315C49] hover:underline font-semibold text-[11px]"
-                          >
-                            Inspect &rarr;
-                          </button>
-                        </td>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left text-xs min-w-[700px]">
+                    <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
+                      <tr>
+                        <th className="p-3">ID</th>
+                        <th className="p-3">Machine Name</th>
+                        <th className="p-3">Department</th>
+                        <th className="p-3">Temperature</th>
+                        <th className="p-3">Vibration</th>
+                        <th className="p-3">Pressure</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3">Last Service</th>
+                        <th className="p-3">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2DD]">
+                      {machines.map((m) => (
+                        <tr key={m.id} className="hover:bg-[#F9FAF9]">
+                          <td className="p-3 font-mono font-bold text-[#315C49]">{m.id}</td>
+                          <td className="p-3 font-semibold">{m.name}</td>
+                          <td className="p-3 text-[#737D76]">{m.department}</td>
+                          <td className="p-3 font-mono">{m.current_temp ? `${m.current_temp.toFixed(1)} °C` : '--'}</td>
+                          <td className="p-3 font-mono">{m.current_vib ? `${m.current_vib.toFixed(2)} mm/s` : '--'}</td>
+                          <td className="p-3 font-mono">{m.current_press ? `${m.current_press.toFixed(1)} bar` : '--'}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                              m.status === 'OPERATIONAL' ? 'bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]' : 'bg-[#FCF6EC] text-[#D69A36] border border-[#F2DDB8]'
+                            }`}>
+                              {m.status}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono text-[11px]">{m.last_maintenance}</td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => {
+                                setSelectedMachineId(m.id);
+                                setActiveTab('assets');
+                              }}
+                              className="text-[#315C49] hover:underline font-semibold text-[11px]"
+                            >
+                              Inspect &rarr;
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* RECENT ALERTS + PREVIEW */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
                   <div className="flex justify-between items-center mb-3 pb-2 border-b border-[#DDE2DD]">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25] flex items-center gap-2">
@@ -570,7 +610,7 @@ export const App: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     {activeAlerts.slice(0, 4).map((a) => (
-                      <div key={a.id} className="p-2.5 bg-[#FAFBFA] border border-[#DDE2DD] rounded flex justify-between items-center text-xs">
+                      <div key={a.id} className="p-2.5 bg-[#FAFBFA] border border-[#DDE2DD] rounded flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs">
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-bold text-[#B84C42]">{a.alert_code}</span>
@@ -580,7 +620,7 @@ export const App: React.FC = () => {
                         </div>
                         <button
                           onClick={() => navigateToDiagnostics(a.machine_id, `Diagnose alert ${a.alert_code} on ${a.machine_id}: ${a.description}`)}
-                          className="bg-[#315C49] text-white px-2.5 py-1 rounded text-[11px] font-semibold flex items-center gap-1"
+                          className="self-start sm:self-auto bg-[#315C49] text-white px-2.5 py-1 rounded text-[11px] font-semibold flex items-center gap-1"
                         >
                           <Bot className="w-3 h-3" /> Diagnose
                         </button>
@@ -595,10 +635,10 @@ export const App: React.FC = () => {
                 <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
                   <div className="flex justify-between items-center mb-3 pb-2 border-b border-[#DDE2DD]">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25] flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-[#315C49]" /> Live Telemetry Preview (M204 Thermal Profile)
+                      <Activity className="w-4 h-4 text-[#315C49]" /> Live Telemetry (M204 Thermal Profile)
                     </h3>
                     <button onClick={() => { setSelectedMachineId('M204'); setActiveTab('sensors'); }} className="text-xs text-[#315C49] font-semibold hover:underline">
-                      Sensor Analytics &rarr;
+                      Analytics &rarr;
                     </button>
                   </div>
                   <TechSensorChart
@@ -618,24 +658,24 @@ export const App: React.FC = () => {
           {/* ============================================================ */}
           {activeTab === 'assets' && (
             <div className="space-y-6">
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-3 border-b border-[#DDE2DD]">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#DDE2DD]">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Asset Fleet Registry</h3>
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <div className="relative w-full sm:w-60">
                       <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-[#737D76]" />
                       <input
                         type="text"
                         value={assetSearch}
                         onChange={(e) => setAssetSearch(e.target.value)}
-                        placeholder="Search Machine ID or Name..."
+                        placeholder="Search Machine ID / Name..."
                         className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#DDE2DD] rounded"
                       />
                     </div>
                     <select
                       value={assetDept}
                       onChange={(e) => setAssetDept(e.target.value)}
-                      className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5"
+                      className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5 w-full sm:w-auto"
                     >
                       <option value="">All Departments</option>
                       <option value="Precision Machining Bay A">Precision Machining Bay A</option>
@@ -647,63 +687,65 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                <table className="w-full text-left text-xs mt-3">
-                  <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
-                    <tr>
-                      <th className="p-3">Machine ID</th>
-                      <th className="p-3">Machine Name</th>
-                      <th className="p-3">Type</th>
-                      <th className="p-3">Department</th>
-                      <th className="p-3">Health Score</th>
-                      <th className="p-3">Operating Hours</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2DD]">
-                    {filteredMachines.map((m) => (
-                      <tr 
-                        key={m.id} 
-                        onClick={() => setSelectedMachineId(m.id)}
-                        className={`cursor-pointer transition-colors ${selectedMachineId === m.id ? 'bg-[#EBF3ED]' : 'hover:bg-[#F9FAF9]'}`}
-                      >
-                        <td className="p-3 font-mono font-bold text-[#315C49]">{m.id}</td>
-                        <td className="p-3 font-semibold">{m.name}</td>
-                        <td className="p-3 text-[#737D76]">{m.machine_type}</td>
-                        <td className="p-3 text-[#737D76]">{m.department}</td>
-                        <td className="p-3 font-mono font-bold">
-                          <span className={m.health_score > 85 ? 'text-[#2E7D5A]' : 'text-[#D69A36]'}>
-                            {m.health_score}%
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono">{m.operating_hours.toLocaleString()} hrs</td>
-                        <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            m.status === 'OPERATIONAL' ? 'bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]' : 'bg-[#FCF6EC] text-[#D69A36] border border-[#F2DDB8]'
-                          }`}>
-                            {m.status}
-                          </span>
-                        </td>
-                        <td className="p-3">
-                          <button
-                            onClick={() => setSelectedMachineId(m.id)}
-                            className="bg-[#315C49] text-white px-2 py-1 rounded text-[11px] font-semibold"
-                          >
-                            Inspect
-                          </button>
-                        </td>
+                <div className="overflow-x-auto w-full mt-3">
+                  <table className="w-full text-left text-xs min-w-[650px]">
+                    <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
+                      <tr>
+                        <th className="p-3">Machine ID</th>
+                        <th className="p-3">Machine Name</th>
+                        <th className="p-3">Type</th>
+                        <th className="p-3">Department</th>
+                        <th className="p-3">Health Score</th>
+                        <th className="p-3">Operating Hours</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2DD]">
+                      {filteredMachines.map((m) => (
+                        <tr 
+                          key={m.id} 
+                          onClick={() => setSelectedMachineId(m.id)}
+                          className={`cursor-pointer transition-colors ${selectedMachineId === m.id ? 'bg-[#EBF3ED]' : 'hover:bg-[#F9FAF9]'}`}
+                        >
+                          <td className="p-3 font-mono font-bold text-[#315C49]">{m.id}</td>
+                          <td className="p-3 font-semibold">{m.name}</td>
+                          <td className="p-3 text-[#737D76]">{m.machine_type}</td>
+                          <td className="p-3 text-[#737D76]">{m.department}</td>
+                          <td className="p-3 font-mono font-bold">
+                            <span className={m.health_score > 85 ? 'text-[#2E7D5A]' : 'text-[#D69A36]'}>
+                              {m.health_score}%
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono">{m.operating_hours.toLocaleString()} hrs</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                              m.status === 'OPERATIONAL' ? 'bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]' : 'bg-[#FCF6EC] text-[#D69A36] border border-[#F2DDB8]'
+                            }`}>
+                              {m.status}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => setSelectedMachineId(m.id)}
+                              className="bg-[#315C49] text-white px-2 py-1 rounded text-[11px] font-semibold"
+                            >
+                              Inspect
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* INSPECTION DETAIL CARD */}
               {selectedMachine && (
-                <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-6 space-y-5">
-                  <div className="flex justify-between items-center border-b border-[#DDE2DD] pb-4">
+                <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-5">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#DDE2DD] pb-4">
                     <div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <span className="text-base font-bold font-mono text-[#315C49]">{selectedMachine.id}</span>
                         <h2 className="text-base font-bold text-[#202A25]">{selectedMachine.name}</h2>
                         <span className="text-xs bg-[#EBF3ED] text-[#315C49] font-mono font-semibold px-2 py-0.5 rounded border border-[#8DAA91]">
@@ -714,14 +756,14 @@ export const App: React.FC = () => {
                     </div>
                     <button
                       onClick={() => navigateToDiagnostics(selectedMachine.id, `Evaluate operational integrity and check error codes for ${selectedMachine.name} (${selectedMachine.id})`)}
-                      className="bg-[#315C49] hover:bg-[#264A3A] text-white px-4 py-2 rounded text-xs font-bold flex items-center gap-2"
+                      className="w-full sm:w-auto bg-[#315C49] hover:bg-[#264A3A] text-white px-4 py-2 rounded text-xs font-bold flex items-center justify-center gap-2"
                     >
                       <Bot className="w-4 h-4" />
                       <span>Investigate with AI RAG &rarr;</span>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                     <div className="border border-[#DDE2DD] p-3 rounded bg-[#FAFBFA]">
                       <span className="text-[10px] font-bold text-[#737D76] uppercase">Criticality Tier</span>
                       <div className="text-sm font-bold font-mono text-[#B84C42] mt-1">{selectedMachine.criticality} CRITICALITY</div>
@@ -735,14 +777,14 @@ export const App: React.FC = () => {
                       <div className="text-sm font-bold font-mono text-[#202A25] mt-1">{selectedMachine.last_maintenance}</div>
                     </div>
                     <div className="border border-[#DDE2DD] p-3 rounded bg-[#FAFBFA]">
-                      <span className="text-[10px] font-bold text-[#737D76] uppercase">Next Scheduled Service</span>
+                      <span className="text-[10px] font-bold text-[#737D76] uppercase">Next Scheduled</span>
                       <div className="text-sm font-bold font-mono text-[#315C49] mt-1">{selectedMachine.next_maintenance}</div>
                     </div>
                   </div>
 
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#737D76] mb-3">Live Parameter Telemetry Snapshot</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
                       <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
                         <span className="text-[10px] font-bold text-[#737D76] uppercase">Temperature</span>
                         <div className="text-lg font-bold font-mono text-[#202A25] mt-1">
@@ -762,16 +804,16 @@ export const App: React.FC = () => {
                         <div className="text-lg font-bold font-mono text-[#202A25] mt-1">
                           {selectedMachine.current_press ? `${selectedMachine.current_press.toFixed(1)} bar` : '--'}
                         </div>
-                        <span className="text-[10px] font-mono text-[#737D76]">{selectedMachine.press_min} - {selectedMachine.press_max} bar</span>
+                        <span className="text-[10px] font-mono text-[#737D76]">{selectedMachine.press_min}-{selectedMachine.press_max} bar</span>
                       </div>
                       <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
                         <span className="text-[10px] font-bold text-[#737D76] uppercase">Shaft RPM</span>
                         <div className="text-lg font-bold font-mono text-[#202A25] mt-1">
                           {selectedMachine.current_rpm ? `${Math.round(selectedMachine.current_rpm)}` : '--'}
                         </div>
-                        <span className="text-[10px] font-mono text-[#737D76]">Nominal: 1450 RPM</span>
+                        <span className="text-[10px] font-mono text-[#737D76]">Nom: 1450 RPM</span>
                       </div>
-                      <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
+                      <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA] col-span-2 sm:col-span-1">
                         <span className="text-[10px] font-bold text-[#737D76] uppercase">Load Current</span>
                         <div className="text-lg font-bold font-mono text-[#202A25] mt-1">
                           {selectedMachine.current_curr ? `${selectedMachine.current_curr.toFixed(1)} A` : '--'}
@@ -789,13 +831,13 @@ export const App: React.FC = () => {
           {/* TAB 3: AI DIAGNOSTICS (CORE RAG MODULE) */}
           {/* ============================================================ */}
           {activeTab === 'diagnostics' && (
-            <div className="space-y-6">
-              <div className="bg-white border border-[#DDE2DD] p-5 rounded shadow-sm space-y-4">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-white border border-[#DDE2DD] p-4 sm:p-5 rounded shadow-sm space-y-4">
                 <div className="flex justify-between items-center border-b border-[#DDE2DD] pb-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">RAG Intelligent Diagnostics Engine</h3>
                   <span className="text-[11px] font-mono text-[#737D76]">STRICT DOCUMENT GROUNDING</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-[11px] font-bold text-[#737D76] uppercase mb-1">Target Asset</label>
                     <select
@@ -812,7 +854,7 @@ export const App: React.FC = () => {
                   </div>
                   <div className="md:col-span-3">
                     <label className="block text-[11px] font-bold text-[#737D76] uppercase mb-1">Diagnostic Question / Error Code</label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={diagQuery}
@@ -823,7 +865,7 @@ export const App: React.FC = () => {
                       <button
                         onClick={handleExecuteDiagnostics}
                         disabled={diagLoading}
-                        className="bg-[#315C49] hover:bg-[#264A3A] text-white px-4 py-2 rounded text-xs font-bold shadow-sm"
+                        className="bg-[#315C49] hover:bg-[#264A3A] text-white px-4 py-2 rounded text-xs font-bold shadow-sm whitespace-nowrap"
                       >
                         {diagLoading ? 'Searching FAISS...' : 'Run RAG'}
                       </button>
@@ -831,23 +873,23 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 pt-2">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2">
                   <span className="text-[11px] font-bold text-[#737D76]">Quick Scenarios:</span>
                   <button
                     onClick={() => {
                       setDiagMachine('M204');
                       setDiagQuery('Machine M204 is showing error E17. What should I check?');
                     }}
-                    className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2.5 py-1 rounded"
+                    className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2.5 py-1 rounded text-left"
                   >
-                    E17 Motor Thermal Overload (M204)
+                    E17 Motor Overload (M204)
                   </button>
                   <button
                     onClick={() => {
                       setDiagMachine('M201');
                       setDiagQuery('Machine M201 spindle vibration alarm E04 during high speed milling. What are the corrective actions?');
                     }}
-                    className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2.5 py-1 rounded"
+                    className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2.5 py-1 rounded text-left"
                   >
                     E04 Spindle Imbalance (M201)
                   </button>
@@ -856,7 +898,7 @@ export const App: React.FC = () => {
                       setDiagMachine('M202');
                       setDiagQuery('Hydraulic Press M202 showing error E88 with pressure dropping below 135 bar. What SOP should I follow?');
                     }}
-                    className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2.5 py-1 rounded"
+                    className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2.5 py-1 rounded text-left"
                   >
                     E88 Pressure Loss (M202)
                   </button>
@@ -864,8 +906,8 @@ export const App: React.FC = () => {
               </div>
 
               {diagResult && (
-                <div className="bg-white border border-[#DDE2DD] p-6 rounded shadow-sm space-y-5">
-                  <div className="flex justify-between items-center border-b border-[#DDE2DD] pb-3">
+                <div className="bg-white border border-[#DDE2DD] p-4 sm:p-6 rounded shadow-sm space-y-4 sm:space-y-5">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-[#DDE2DD] pb-3">
                     <h3 className="text-sm font-bold uppercase tracking-wide">Structured Diagnostic Troubleshooting Report</h3>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-[#737D76]">Evidence Confidence:</span>
@@ -877,14 +919,14 @@ export const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="border-l-4 border-[#315C49] bg-[#FAFBFA] p-4 rounded">
+                  <div className="border-l-4 border-[#315C49] bg-[#FAFBFA] p-3 sm:p-4 rounded">
                     <div className="text-[11px] font-bold uppercase text-[#315C49] mb-1">Diagnostic Summary</div>
                     <p className="text-xs leading-relaxed text-[#202A25]">{diagResult.diagnostic_summary}</p>
                     <p className="text-[11px] text-[#737D76] mt-2 font-mono">{diagResult.confidence_rationale}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border border-[#DDE2DD] p-4 rounded">
+                    <div className="border border-[#DDE2DD] p-3 sm:p-4 rounded">
                       <div className="text-[11px] font-bold uppercase text-[#D69A36] mb-2">Probable Causes</div>
                       <ul className="text-xs list-disc list-inside space-y-1">
                         {diagResult.probable_causes.map((c: string, idx: number) => (
@@ -892,7 +934,7 @@ export const App: React.FC = () => {
                         ))}
                       </ul>
                     </div>
-                    <div className="border border-[#DDE2DD] p-4 rounded">
+                    <div className="border border-[#DDE2DD] p-3 sm:p-4 rounded">
                       <div className="text-[11px] font-bold uppercase text-[#315C49] mb-2">Recommended Inspections</div>
                       <ul className="text-xs list-disc list-inside space-y-1">
                         {diagResult.recommended_inspections.map((i: string, idx: number) => (
@@ -902,7 +944,7 @@ export const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="border border-[#DDE2DD] p-4 rounded">
+                  <div className="border border-[#DDE2DD] p-3 sm:p-4 rounded">
                     <div className="text-[11px] font-bold uppercase text-[#2E7D5A] mb-2">Step-by-Step SOP Troubleshooting</div>
                     <ol className="text-xs list-decimal list-inside space-y-1.5">
                       {diagResult.step_by_step_troubleshooting.map((s: string, idx: number) => (
@@ -911,7 +953,7 @@ export const App: React.FC = () => {
                     </ol>
                   </div>
 
-                  <div className="border border-[#F5C6C1] bg-[#FBEFED] p-4 rounded">
+                  <div className="border border-[#F5C6C1] bg-[#FBEFED] p-3 sm:p-4 rounded">
                     <div className="text-[11px] font-bold uppercase text-[#B84C42] mb-1">Mandatory Safety Precautions (OSHA LOTO)</div>
                     <ul className="text-xs list-disc list-inside space-y-1 text-[#202A25]">
                       {diagResult.safety_precautions.map((p: string, idx: number) => (
@@ -925,9 +967,9 @@ export const App: React.FC = () => {
                     <div className="space-y-2">
                       {diagResult.citations.map((cite: any, idx: number) => (
                         <div key={idx} className="bg-[#F9FAF9] border border-[#DDE2DD] p-3 rounded text-xs">
-                          <div className="flex justify-between items-center font-semibold text-[#315C49] mb-1">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center font-semibold text-[#315C49] mb-1 gap-1">
                             <span>[REF {idx + 1}] {cite.document_name} &bull; Page {cite.page_number}</span>
-                            <span className="font-mono text-[11px] bg-white px-1.5 py-0.5 border border-[#DDE2DD] rounded">
+                            <span className="font-mono text-[11px] bg-white px-1.5 py-0.5 border border-[#DDE2DD] rounded self-start sm:self-auto">
                               Cosine Similarity: {(cite.similarity_score * 100).toFixed(1)}%
                             </span>
                           </div>
@@ -937,7 +979,7 @@ export const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-[#DDE2DD] flex justify-between items-center">
+                  <div className="pt-3 border-t border-[#DDE2DD] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <span className="font-mono text-[11px] text-[#737D76]">Provider: {diagResult.llm_provider}</span>
                     <button
                       onClick={() => {
@@ -949,7 +991,7 @@ export const App: React.FC = () => {
                         });
                         setShowMaintModal(true);
                       }}
-                      className="bg-[#315C49] hover:bg-[#264A3A] text-white px-3 py-1.5 rounded text-xs font-bold"
+                      className="w-full sm:w-auto bg-[#315C49] hover:bg-[#264A3A] text-white px-3 py-1.5 rounded text-xs font-bold text-center"
                     >
                       Record Maintenance Action &rarr;
                     </button>
@@ -963,15 +1005,15 @@ export const App: React.FC = () => {
           {/* TAB 4: KNOWLEDGE BASE */}
           {/* ============================================================ */}
           {activeTab === 'knowledge' && (
-            <div className="space-y-6">
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-5">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4 sm:p-5">
                 <div className="flex justify-between items-center pb-3 border-b border-[#DDE2DD] mb-4">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Technical Document Ingestion & Vector Indexing</h3>
                   <span className="font-mono text-[11px] text-[#737D76]">PyMuPDF + FAISS</span>
                 </div>
 
-                <div className="border-2 border-dashed border-[#AAB2AA] rounded-lg p-8 text-center bg-[#FAFBFA]">
-                  <UploadCloud className="w-10 h-10 text-[#737D76] mx-auto mb-2" />
+                <div className="border-2 border-dashed border-[#AAB2AA] rounded-lg p-5 sm:p-8 text-center bg-[#FAFBFA]">
+                  <UploadCloud className="w-8 sm:w-10 h-8 sm:h-10 text-[#737D76] mx-auto mb-2" />
                   <p className="font-semibold text-xs text-[#202A25]">Upload Technical Manuals, SOPs, or Error Code Documentation</p>
                   <p className="text-[11px] text-[#737D76] mt-1 mb-4">Supported formats: PDF, TXT, MD (Max 25MB)</p>
                   
@@ -991,67 +1033,69 @@ export const App: React.FC = () => {
                   </button>
 
                   {docUploadMsg && (
-                    <div className="mt-3 font-mono text-xs text-[#315C49] bg-[#EBF3ED] p-2 rounded inline-block">
+                    <div className="mt-3 font-mono text-xs text-[#315C49] bg-[#EBF3ED] p-2 rounded inline-block max-w-full break-words">
                       {docUploadMsg}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-3 sm:p-4">
                 <div className="flex justify-between items-center pb-3 border-b border-[#DDE2DD] mb-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Indexed Technical Documentation Library</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Indexed Documentation Library</h3>
                   <button onClick={loadAllRecords} className="text-xs flex items-center gap-1.5 text-[#315C49] font-semibold hover:underline">
-                    <RefreshCw className="w-3.5 h-3.5" /> Refresh Library
+                    <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Refresh Library</span>
                   </button>
                 </div>
 
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
-                    <tr>
-                      <th className="p-3">Document Name</th>
-                      <th className="p-3">Type</th>
-                      <th className="p-3">Pages</th>
-                      <th className="p-3">Vector Chunks</th>
-                      <th className="p-3">File Size</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Indexed Timestamp</th>
-                      <th className="p-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2DD]">
-                    {documents.map((d) => (
-                      <tr key={d.id} className="hover:bg-[#F9FAF9]">
-                        <td className="p-3 font-semibold text-[#202A25]">{d.filename}</td>
-                        <td className="p-3 font-mono text-[#737D76]">{d.document_type}</td>
-                        <td className="p-3 font-mono">{d.page_count}</td>
-                        <td className="p-3 font-mono font-bold text-[#315C49]">{d.chunk_count} chunks</td>
-                        <td className="p-3 font-mono text-[#737D76]">{(d.file_size / 1024).toFixed(1)} KB</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
-                            {d.status}
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono text-[11px] text-[#737D76]">{new Date(d.upload_timestamp).toLocaleDateString()}</td>
-                        <td className="p-3">
-                          <button
-                            onClick={() => handleDeleteDoc(d.id)}
-                            className="text-[#B84C42] hover:text-red-700 font-semibold text-[11px]"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {documents.length === 0 && (
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left text-xs min-w-[700px]">
+                    <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
                       <tr>
-                        <td colSpan={8} className="p-4 text-center text-xs text-[#737D76]">
-                          No technical documentation uploaded yet.
-                        </td>
+                        <th className="p-3">Document Name</th>
+                        <th className="p-3">Type</th>
+                        <th className="p-3">Pages</th>
+                        <th className="p-3">Vector Chunks</th>
+                        <th className="p-3">File Size</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3">Indexed Timestamp</th>
+                        <th className="p-3">Action</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2DD]">
+                      {documents.map((d) => (
+                        <tr key={d.id} className="hover:bg-[#F9FAF9]">
+                          <td className="p-3 font-semibold text-[#202A25]">{d.filename}</td>
+                          <td className="p-3 font-mono text-[#737D76]">{d.document_type}</td>
+                          <td className="p-3 font-mono">{d.page_count}</td>
+                          <td className="p-3 font-mono font-bold text-[#315C49]">{d.chunk_count} chunks</td>
+                          <td className="p-3 font-mono text-[#737D76]">{(d.file_size / 1024).toFixed(1)} KB</td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
+                              {d.status}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono text-[11px] text-[#737D76]">{new Date(d.upload_timestamp).toLocaleDateString()}</td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleDeleteDoc(d.id)}
+                              className="text-[#B84C42] hover:text-red-700 font-semibold text-[11px]"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {documents.length === 0 && (
+                        <tr>
+                          <td colSpan={8} className="p-4 text-center text-xs text-[#737D76]">
+                            No technical documentation uploaded yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1060,19 +1104,19 @@ export const App: React.FC = () => {
           {/* TAB 5: SENSOR ANALYTICS */}
           {/* ============================================================ */}
           {activeTab === 'sensors' && (
-            <div className="space-y-6">
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
-                <div className="flex justify-between items-center pb-3 border-b border-[#DDE2DD] mb-4">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#DDE2DD] mb-4">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Real-Time Sensor Telemetry & Anomaly Analysis</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-[#737D76]">Target Machine:</span>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <span className="text-xs font-bold text-[#737D76] whitespace-nowrap">Machine:</span>
                     <select
                       value={selectedMachineId}
                       onChange={(e) => {
                         setSelectedMachineId(e.target.value);
                         loadTelemetryData(e.target.value);
                       }}
-                      className="border border-[#DDE2DD] rounded px-3 py-1.5 text-xs font-semibold"
+                      className="border border-[#DDE2DD] rounded px-3 py-1.5 text-xs font-semibold flex-1 sm:flex-none"
                     >
                       <option value="M201">M201 - CNC Milling Machine</option>
                       <option value="M202">M202 - Hydraulic Press</option>
@@ -1083,39 +1127,39 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* GAUGES */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {/* RESPONSIVE GAUGES */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
                   <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
                     <span className="text-[10px] font-bold text-[#737D76] uppercase">Temperature</span>
-                    <div className="text-xl font-bold font-mono text-[#202A25] mt-1">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-[#202A25] mt-1">
                       {latestSensor?.temperature ? `${latestSensor.temperature.toFixed(1)} °C` : '--'}
                     </div>
                     <span className="text-[10px] font-mono text-[#B84C42]">Max: 80.0 °C</span>
                   </div>
                   <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
                     <span className="text-[10px] font-bold text-[#737D76] uppercase">Vibration (RMS)</span>
-                    <div className="text-xl font-bold font-mono text-[#202A25] mt-1">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-[#202A25] mt-1">
                       {latestSensor?.vibration ? `${latestSensor.vibration.toFixed(2)} mm/s` : '--'}
                     </div>
                     <span className="text-[10px] font-mono text-[#D69A36]">ISO: 4.2 mm/s</span>
                   </div>
                   <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
                     <span className="text-[10px] font-bold text-[#737D76] uppercase">Pressure</span>
-                    <div className="text-xl font-bold font-mono text-[#202A25] mt-1">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-[#202A25] mt-1">
                       {latestSensor?.pressure ? `${latestSensor.pressure.toFixed(1)} bar` : '--'}
                     </div>
                     <span className="text-[10px] font-mono text-[#737D76]">2.0 - 4.5 bar</span>
                   </div>
                   <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
                     <span className="text-[10px] font-bold text-[#737D76] uppercase">Motor Current</span>
-                    <div className="text-xl font-bold font-mono text-[#202A25] mt-1">
+                    <div className="text-lg sm:text-xl font-bold font-mono text-[#202A25] mt-1">
                       {latestSensor?.current ? `${latestSensor.current.toFixed(1)} A` : '--'}
                     </div>
                     <span className="text-[10px] font-mono text-[#737D76]">Nominal: 28.5 A</span>
                   </div>
-                  <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA]">
+                  <div className="p-3 border border-[#DDE2DD] rounded bg-[#FAFBFA] col-span-2 sm:col-span-1">
                     <span className="text-[10px] font-bold text-[#737D76] uppercase">ML Isolation Forest</span>
-                    <div className="text-sm font-bold font-mono mt-1">
+                    <div className="text-xs sm:text-sm font-bold font-mono mt-1">
                       {latestSensor?.is_anomaly ? (
                         <span className="text-[#B84C42] flex items-center gap-1">
                           <AlertTriangle className="w-3.5 h-3.5" /> ANOMALY DETECTED
@@ -1132,7 +1176,7 @@ export const App: React.FC = () => {
               </div>
 
               {/* TELEMETRY CHARTS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <TechSensorChart
                   data={sensorHistory.map(h => h.temperature)}
                   unit="°C"
@@ -1169,21 +1213,21 @@ export const App: React.FC = () => {
           {/* TAB 6: MAINTENANCE LOGS */}
           {/* ============================================================ */}
           {activeTab === 'maintenance' && (
-            <div className="space-y-6">
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 border-b border-[#DDE2DD] mb-3">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#DDE2DD] mb-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Maintenance Registry & Interventions</h3>
                   <button
                     onClick={() => setShowMaintModal(true)}
-                    className="bg-[#315C49] hover:bg-[#264A3A] text-white px-3.5 py-1.5 rounded text-xs font-bold flex items-center gap-2"
+                    className="w-full sm:w-auto bg-[#315C49] hover:bg-[#264A3A] text-white px-3.5 py-1.5 rounded text-xs font-bold flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Log Maintenance Activity</span>
                   </button>
                 </div>
 
-                <div className="flex flex-wrap gap-3 mb-4">
-                  <div className="relative flex-1 md:w-64">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-4">
+                  <div className="relative flex-1 w-full sm:w-64">
                     <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-[#737D76]" />
                     <input
                       type="text"
@@ -1196,7 +1240,7 @@ export const App: React.FC = () => {
                   <select
                     value={maintMachineFilter}
                     onChange={(e) => setMaintMachineFilter(e.target.value)}
-                    className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5"
+                    className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5 w-full sm:w-auto"
                   >
                     <option value="">All Machines</option>
                     <option value="M201">M201 (CNC Milling)</option>
@@ -1207,47 +1251,49 @@ export const App: React.FC = () => {
                   </select>
                 </div>
 
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
-                    <tr>
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Machine ID</th>
-                      <th className="p-3">Error Code</th>
-                      <th className="p-3">Reported Failure Issue</th>
-                      <th className="p-3">Root Cause</th>
-                      <th className="p-3">Corrective Action</th>
-                      <th className="p-3">Downtime</th>
-                      <th className="p-3">Technician</th>
-                      <th className="p-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2DD]">
-                    {filteredMaint.map((r) => (
-                      <tr key={r.id} className="hover:bg-[#F9FAF9]">
-                        <td className="p-3 font-mono text-[11px] text-[#737D76]">{new Date(r.maintenance_date).toLocaleDateString()}</td>
-                        <td className="p-3 font-mono font-bold text-[#315C49]">{r.machine_id}</td>
-                        <td className="p-3 font-mono font-bold text-[#B84C42]">{r.error_code}</td>
-                        <td className="p-3 font-semibold">{r.reported_issue}</td>
-                        <td className="p-3 text-[#737D76]">{r.root_cause}</td>
-                        <td className="p-3 text-[#737D76]">{r.corrective_action}</td>
-                        <td className="p-3 font-mono">{r.downtime_hours} hrs</td>
-                        <td className="p-3 text-[#202A25]">{r.technician_name}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
-                            {r.resolution_status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredMaint.length === 0 && (
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left text-xs min-w-[800px]">
+                    <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
                       <tr>
-                        <td colSpan={9} className="p-4 text-center text-xs text-[#737D76]">
-                          No maintenance records match current filter criteria.
-                        </td>
+                        <th className="p-3">Date</th>
+                        <th className="p-3">Machine ID</th>
+                        <th className="p-3">Error Code</th>
+                        <th className="p-3">Reported Failure Issue</th>
+                        <th className="p-3">Root Cause</th>
+                        <th className="p-3">Corrective Action</th>
+                        <th className="p-3">Downtime</th>
+                        <th className="p-3">Technician</th>
+                        <th className="p-3">Status</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2DD]">
+                      {filteredMaint.map((r) => (
+                        <tr key={r.id} className="hover:bg-[#F9FAF9]">
+                          <td className="p-3 font-mono text-[11px] text-[#737D76]">{new Date(r.maintenance_date).toLocaleDateString()}</td>
+                          <td className="p-3 font-mono font-bold text-[#315C49]">{r.machine_id}</td>
+                          <td className="p-3 font-mono font-bold text-[#B84C42]">{r.error_code}</td>
+                          <td className="p-3 font-semibold">{r.reported_issue}</td>
+                          <td className="p-3 text-[#737D76]">{r.root_cause}</td>
+                          <td className="p-3 text-[#737D76]">{r.corrective_action}</td>
+                          <td className="p-3 font-mono">{r.downtime_hours} hrs</td>
+                          <td className="p-3 text-[#202A25]">{r.technician_name}</td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
+                              {r.resolution_status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredMaint.length === 0 && (
+                        <tr>
+                          <td colSpan={9} className="p-4 text-center text-xs text-[#737D76]">
+                            No maintenance records match current filter criteria.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1256,15 +1302,15 @@ export const App: React.FC = () => {
           {/* TAB 7: ALERT CENTER */}
           {/* ============================================================ */}
           {activeTab === 'alerts' && (
-            <div className="space-y-6">
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 border-b border-[#DDE2DD] mb-4">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#DDE2DD] mb-4">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">Centralized Industrial Alert Queue</h3>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <select
                       value={alertStatusFilter}
                       onChange={(e) => setAlertStatusFilter(e.target.value)}
-                      className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5"
+                      className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5 flex-1 sm:flex-none"
                     >
                       <option value="">All Statuses</option>
                       <option value="NEW">NEW</option>
@@ -1274,7 +1320,7 @@ export const App: React.FC = () => {
                     <select
                       value={alertSevFilter}
                       onChange={(e) => setAlertSevFilter(e.target.value)}
-                      className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5"
+                      className="text-xs border border-[#DDE2DD] rounded px-3 py-1.5 flex-1 sm:flex-none"
                     >
                       <option value="">All Severities</option>
                       <option value="CRITICAL">Critical</option>
@@ -1284,76 +1330,78 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
-                    <tr>
-                      <th className="p-3">Alert Code</th>
-                      <th className="p-3">Severity</th>
-                      <th className="p-3">Machine</th>
-                      <th className="p-3">Category</th>
-                      <th className="p-3">Condition Description</th>
-                      <th className="p-3">Timestamp</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2DD]">
-                    {filteredAlerts.map((a) => (
-                      <tr key={a.id} className="hover:bg-[#F9FAF9]">
-                        <td className="p-3 font-mono font-bold text-[#B84C42]">{a.alert_code}</td>
-                        <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            a.severity === 'CRITICAL' ? 'bg-[#FBEFED] text-[#B84C42] border border-[#F5C6C1]' :
-                            a.severity === 'WARNING' ? 'bg-[#FCF6EC] text-[#D69A36] border border-[#F2DDB8]' :
-                            'bg-[#EBF3ED] text-[#315C49] border border-[#8DAA91]'
-                          }`}>
-                            {a.severity}
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono font-bold text-[#315C49]">{a.machine_id}</td>
-                        <td className="p-3 text-[#737D76]">{a.category}</td>
-                        <td className="p-3 font-semibold">{a.description}</td>
-                        <td className="p-3 font-mono text-[11px] text-[#737D76]">{new Date(a.timestamp).toLocaleTimeString()}</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
-                            {a.status}
-                          </span>
-                        </td>
-                        <td className="p-3 flex items-center gap-2">
-                          {a.status === 'NEW' && (
-                            <button
-                              onClick={() => handleUpdateAlert(a.id, 'ACKNOWLEDGED')}
-                              className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2 py-1 rounded"
-                            >
-                              Ack
-                            </button>
-                          )}
-                          {a.status !== 'RESOLVED' && (
-                            <button
-                              onClick={() => handleUpdateAlert(a.id, 'RESOLVED')}
-                              className="bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD] hover:bg-[#DDF0E6] text-[11px] px-2 py-1 rounded"
-                            >
-                              Resolve
-                            </button>
-                          )}
-                          <button
-                            onClick={() => navigateToDiagnostics(a.machine_id, `Investigate active alert ${a.alert_code} on ${a.machine_id}: ${a.description}`)}
-                            className="bg-[#315C49] text-white text-[11px] px-2 py-1 rounded font-semibold"
-                          >
-                            Diagnose
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredAlerts.length === 0 && (
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left text-xs min-w-[750px]">
+                    <thead className="bg-[#F8F9F8] text-[#737D76] border-b border-[#DDE2DD] uppercase font-bold text-[10px] tracking-wider">
                       <tr>
-                        <td colSpan={8} className="p-4 text-center text-xs text-[#737D76]">
-                          No alerts match current filter.
-                        </td>
+                        <th className="p-3">Alert Code</th>
+                        <th className="p-3">Severity</th>
+                        <th className="p-3">Machine</th>
+                        <th className="p-3">Category</th>
+                        <th className="p-3">Condition Description</th>
+                        <th className="p-3">Timestamp</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3">Actions</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2DD]">
+                      {filteredAlerts.map((a) => (
+                        <tr key={a.id} className="hover:bg-[#F9FAF9]">
+                          <td className="p-3 font-mono font-bold text-[#B84C42]">{a.alert_code}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                              a.severity === 'CRITICAL' ? 'bg-[#FBEFED] text-[#B84C42] border border-[#F5C6C1]' :
+                              a.severity === 'WARNING' ? 'bg-[#FCF6EC] text-[#D69A36] border border-[#F2DDB8]' :
+                              'bg-[#EBF3ED] text-[#315C49] border border-[#8DAA91]'
+                            }`}>
+                              {a.severity}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono font-bold text-[#315C49]">{a.machine_id}</td>
+                          <td className="p-3 text-[#737D76]">{a.category}</td>
+                          <td className="p-3 font-semibold">{a.description}</td>
+                          <td className="p-3 font-mono text-[11px] text-[#737D76]">{new Date(a.timestamp).toLocaleTimeString()}</td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
+                              {a.status}
+                            </span>
+                          </td>
+                          <td className="p-3 flex items-center gap-1.5 whitespace-nowrap">
+                            {a.status === 'NEW' && (
+                              <button
+                                onClick={() => handleUpdateAlert(a.id, 'ACKNOWLEDGED')}
+                                className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[11px] px-2 py-1 rounded"
+                              >
+                                Ack
+                              </button>
+                            )}
+                            {a.status !== 'RESOLVED' && (
+                              <button
+                                onClick={() => handleUpdateAlert(a.id, 'RESOLVED')}
+                                className="bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD] hover:bg-[#DDF0E6] text-[11px] px-2 py-1 rounded"
+                              >
+                                Resolve
+                              </button>
+                            )}
+                            <button
+                              onClick={() => navigateToDiagnostics(a.machine_id, `Investigate active alert ${a.alert_code} on ${a.machine_id}: ${a.description}`)}
+                              className="bg-[#315C49] text-white text-[11px] px-2 py-1 rounded font-semibold"
+                            >
+                              Diagnose
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredAlerts.length === 0 && (
+                        <tr>
+                          <td colSpan={8} className="p-4 text-center text-xs text-[#737D76]">
+                            No alerts match current filter.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1362,8 +1410,8 @@ export const App: React.FC = () => {
           {/* TAB 8: SETTINGS & HEALTH */}
           {/* ============================================================ */}
           {activeTab === 'settings' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-5 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4 sm:p-5 space-y-4">
                 <div className="flex justify-between items-center pb-3 border-b border-[#DDE2DD]">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">LLM Inference Provider Configuration</h3>
                   <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF7F2] text-[#2E7D5A] border border-[#B8E2CD]">
@@ -1408,7 +1456,7 @@ export const App: React.FC = () => {
 
                 <button
                   onClick={handleSaveSettings}
-                  className="bg-[#315C49] hover:bg-[#264A3A] text-white px-4 py-2 rounded text-xs font-bold"
+                  className="w-full sm:w-auto bg-[#315C49] hover:bg-[#264A3A] text-white px-4 py-2 rounded text-xs font-bold"
                 >
                   Save & Update Provider
                 </button>
@@ -1418,12 +1466,12 @@ export const App: React.FC = () => {
                 )}
               </div>
 
-              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-5 space-y-4">
+              <div className="bg-white border border-[#DDE2DD] rounded shadow-sm p-4 sm:p-5 space-y-4">
                 <div className="pb-3 border-b border-[#DDE2DD]">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#202A25]">FAISS Vector Database & System Diagnostics</h3>
                 </div>
 
-                <div className="border border-[#DDE2DD] bg-[#FAFBFA] p-4 rounded text-xs space-y-2">
+                <div className="border border-[#DDE2DD] bg-[#FAFBFA] p-3 sm:p-4 rounded text-xs space-y-2">
                   <p><strong>Vector Search Engine:</strong> <span className="font-mono text-[#315C49]">NumPy Flat Cosine Vector Store (FAISS L2 Norm)</span></p>
                   <p><strong>Vector Coordinate Dimension:</strong> <span className="font-mono">384 (all-MiniLM-L6-v2)</span></p>
                   <p><strong>Total Indexed Knowledge Chunks:</strong> <span className="font-mono text-[#2E7D5A] font-bold">{documents.reduce((acc, d) => acc + d.chunk_count, 0)} Chunks</span></p>
@@ -1433,7 +1481,7 @@ export const App: React.FC = () => {
 
                 <button
                   onClick={handleTestHealth}
-                  className="bg-[#FAFBFA] border border-[#AAB2AA] hover:bg-[#E8ECE8] text-[#202A25] px-4 py-2 rounded text-xs font-bold flex items-center gap-2"
+                  className="w-full sm:w-auto bg-[#FAFBFA] border border-[#AAB2AA] hover:bg-[#E8ECE8] text-[#202A25] px-4 py-2 rounded text-xs font-bold flex items-center justify-center gap-2"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Run Full System Health Check</span>
@@ -1455,15 +1503,15 @@ export const App: React.FC = () => {
       {/* MODAL 1: ANOMALY INJECTOR */}
       {/* ============================================================ */}
       {showAnomalyModal && (
-        <div className="fixed inset-0 bg-[#0F1713]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#DDE2DD] rounded shadow-xl w-full max-w-lg">
-            <div className="p-4 border-b border-[#DDE2DD] flex justify-between items-center bg-[#FAFBFA]">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#202A25]">IoT Sensor Simulator - Anomaly Injector</h3>
-              <button onClick={() => setShowAnomalyModal(false)} className="text-[#737D76] hover:text-black">
+        <div className="fixed inset-0 bg-[#0F1713]/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white border border-[#DDE2DD] rounded shadow-xl w-full max-w-lg max-h-[92vh] flex flex-col">
+            <div className="p-3.5 sm:p-4 border-b border-[#DDE2DD] flex justify-between items-center bg-[#FAFBFA] flex-shrink-0">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#202A25]">IoT Sensor Simulator - Anomaly Injector</h3>
+              <button onClick={() => setShowAnomalyModal(false)} className="text-[#737D76] hover:text-black p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-5 space-y-4 text-xs">
+            <div className="p-4 sm:p-5 space-y-3 sm:space-y-4 text-xs overflow-y-auto">
               <p className="text-[#737D76]">
                 Inject simulated physical degradation signatures into equipment telemetry to evaluate Isolation Forest ML detection and automated RAG diagnostics in real time.
               </p>
@@ -1508,7 +1556,7 @@ export const App: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="p-4 border-t border-[#DDE2DD] bg-[#FAFBFA] flex justify-end gap-2">
+            <div className="p-3 sm:p-4 border-t border-[#DDE2DD] bg-[#FAFBFA] flex flex-wrap justify-end gap-2 flex-shrink-0">
               <button
                 onClick={() => setShowAnomalyModal(false)}
                 className="bg-[#FAFBFA] border border-[#DDE2DD] hover:bg-[#E8ECE8] text-[#202A25] px-3.5 py-1.5 rounded text-xs font-semibold"
@@ -1530,16 +1578,16 @@ export const App: React.FC = () => {
       {/* MODAL 2: LOG MAINTENANCE RECORD */}
       {/* ============================================================ */}
       {showMaintModal && (
-        <div className="fixed inset-0 bg-[#0F1713]/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#DDE2DD] rounded shadow-xl w-full max-w-lg">
-            <div className="p-4 border-b border-[#DDE2DD] flex justify-between items-center bg-[#FAFBFA]">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[#202A25]">Record Maintenance Activity</h3>
-              <button onClick={() => setShowMaintModal(false)} className="text-[#737D76] hover:text-black">
+        <div className="fixed inset-0 bg-[#0F1713]/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white border border-[#DDE2DD] rounded shadow-xl w-full max-w-lg max-h-[92vh] flex flex-col">
+            <div className="p-3.5 sm:p-4 border-b border-[#DDE2DD] flex justify-between items-center bg-[#FAFBFA] flex-shrink-0">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#202A25]">Record Maintenance Activity</h3>
+              <button onClick={() => setShowMaintModal(false)} className="text-[#737D76] hover:text-black p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleCreateMaintenance}>
-              <div className="p-5 space-y-3 text-xs max-h-[70vh] overflow-y-auto">
+            <form onSubmit={handleCreateMaintenance} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-4 sm:p-5 space-y-3 text-xs overflow-y-auto flex-1">
                 <div>
                   <label className="block text-[11px] font-bold text-[#737D76] uppercase mb-1">Target Machine ID</label>
                   <select
@@ -1594,7 +1642,7 @@ export const App: React.FC = () => {
                     placeholder="Detailed SOP corrective measures"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-[#737D76] uppercase mb-1">Downtime (Hours)</label>
                     <input
@@ -1616,7 +1664,7 @@ export const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="p-4 border-t border-[#DDE2DD] bg-[#FAFBFA] flex justify-end gap-2">
+              <div className="p-3 sm:p-4 border-t border-[#DDE2DD] bg-[#FAFBFA] flex flex-wrap justify-end gap-2 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowMaintModal(false)}
